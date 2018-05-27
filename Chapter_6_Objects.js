@@ -258,7 +258,7 @@ console.log(object.getWord());
 // log: hello
 
 
-/**** * Overriding Dervied Properties ******/
+/**** * Overriding Derived Properties ******/
 
 // You can override prototypes of an instance
 // You can do this by adding the property on the instance itself
@@ -479,7 +479,7 @@ let sym3 = Symbol('foo');
 // Symbol('foo') === Symbol('foo'); // false
 
 /* From Mozilla's Symbol glossary page:
-The data type "symbol" is a primitive data type having the quality that, vlaues of this type can be 
+The data type "symbol" is a primitive data type having the quality that, values of this type can be 
 used to make object properties that are anonymous. This data type is used as the
 key for an object property when the property is intended to be private, for the internal use of a class or an object type.
 
@@ -537,7 +537,10 @@ class Matrix{
 // 4, so that all elements on row 1 will be AT LEAST 4 larger than all elements on row 0! 
 
 // This class stores its contents in an array of length WIDTHxHEIGHT. The elements get stored row by row.
-// I don't really know what element = (x,y) => undefined is.
+// I don't really know what element = (x,y) => undefined is. 
+// Okay so I think it's setting each element value to a function value and it is undefined,
+// until when it's called and the user will define the function as a parameter. 
+// So everytime you 'get' an element value, the value will be a function.
 // I think it's an optional content function that is used to fill in the initial values
 
 // Then there's the get and set methods which let you get an element based on the x and y values and
@@ -713,8 +716,6 @@ console.log(matrix12.get(2, 3));
 // The 'set' function makes more sense. When 'set' is called, the 'set' method from the superclass' 
 // 'set' method is called and it uses that method's function with the values given by the subclass
 // It then sets the values and also sets the symmetric value as well. 
-
-
 
 
 
