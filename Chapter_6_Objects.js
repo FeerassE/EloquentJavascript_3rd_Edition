@@ -1,3 +1,5 @@
+
+//**************** Chapter 6 ********************//
 //********** The Secret Life of Objects *********//
 
 // Object oriented programming is programming that uses Objects
@@ -62,7 +64,6 @@ rabbit.speak("I'm alive.");
 
 function speak(line){
     console.log(`The ${this.type} rabbit says '${line}'`);
-
 }
 
 let whiteRabbit = {type: "white", speak};
