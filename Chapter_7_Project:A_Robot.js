@@ -259,6 +259,10 @@ console.log(object.value);
 // A robot is a function that takes a VillageState object and returns the name of
 // a nearby place.
 
+// We also want the robot to remember thingd, so it can make and execute
+// plans, so also pass it a memory and allow the robot to return
+// a new memory.
+
 
 function runRobot(state, robot, memory){
     for(let turn = 0;; turn++) {
@@ -271,4 +275,258 @@ function runRobot(state, robot, memory){
         memory = action.memory;
         console.log(`Moved to ${action.direction}`);
     }
+}
+
+
+// Run robot loops until the length of the parcel array is zero
+// indicating that all parcels have been delivered. 
+
+// Would there be a way to run this recursively?
+
+// To solve a given state, the robot must visit every location that has a parcel
+// and deliver each parcel by visiting every location that a parcel is addressed to but
+// ONLY AFTER PICKING UP THE PARCEL.
+
+// The dumbest strategy would be for the robot to run in a random direction every turn.
+// Eventually it would run into all parcels, and then at some point reach the place
+// where they should be delivered. 
+
+
+function randomPick(array){
+    let choice = Math.floor(Math.random() * array.length);
+    return array[choice];
+}
+
+function randomRobot(state){
+    return {direction: randomPick(roadGraph[state.place])};
+}
+
+// Math.random() returns a number between 0 and 1 but always below 1.
+// Math.floor() returns an integer less than or equal to the specified number. REMOVES DECIMALS AND ROUNDS DOWN
+// Math.floor(45.95); // 45
+// Math.floor(45.05); // 45
+// Math.floor(-45.05); // -46
+
+// Since the robot doesn't remember anything, it ignores its second argument that being 'memory'.
+// Javascript functions can be called with extra arguments without ill effects.
+// The robot function omits the 'memory' property from its returned 'object'. 
+
+
+// We're going to add a method to the VillageState class that creates a random
+// state with parcels
+
+VillageState.random = function(parcelCount = 5) {
+    let parcels = [];
+    for(let i = 0; i < parcelCount; i++) {
+        let address = randomPick(Object.keys(roadGraph));
+        let place;
+        do {
+            place = randomPick(Object.keys(roadGraph));
+        } while (place == address);
+
+        // The 'do' loop keeps picking new places when the place and address are the same.
+        // This is so that the parcels aren't sent from the same place that they
+        // have a shipping address to.
+        parcels.push({place, address})
+    }
+    return new VillageState("Post Office", parcels);
+}
+
+// Object.keys creates an array of all of the keys of an object.
+
+runRobot(VillageState.random(), randomRobot);
+
+
+/*********** * The Mail Truck's Route ************/
+
+// We could run the route twice, one pass to pick up parcels and pass of the ones we already have,
+// and then another to pass of the remainder of the parcels
+
+const mailRoute = [
+    "Alice's House", "Cabin", "Alice's House", "Bob's House",
+    "Town Hall", "Daria's House", "Ernie's House",
+    "Grete's House", "Shop", "Grete's House", "Farm",
+    "Marketplace", "Post Office"
+  ];
+
+  // We'll need to use the robot's route memory
+
+  function routeRobot(state, memory) {
+    if (memory.length == 0) {
+      memory = mailRoute;
+    }
+    return {direction: memory[0], memory: memory.slice(1)};
+  }
+
+/*
+
+Example of the SLICE method.
+var animals = ['ant', 'bison', 'camel', 'duck', 'elephant'];
+
+console.log(animals.slice(2));
+// expected output: Array ["camel", "duck", "elephant"]
+
+*/
+
+
+runRobot(VillageState.random(), routeRobot, []);
+
+
+/*********** * Pathfinding ***********/
+
+// Okay now we're going to do some pathfinding
+// This is a typical search problem
+
+// The findRoute function will find the shortest route to a parcel or to the location it must be delivered
+
+// So we explore routes from a starting point trying to find the shortest solution route
+
+// Stepping through each part of the program helps! 
+
+function findRoute(graph, from, to) {
+    let work = [{at: from, route:[]}];
+    for (let i = 0; i < work.length; i++) {
+        let {at, route} = work[i];
+        // The for loop will add new {at,route} objects to the work array.
+        // The line above sets the variables at and route to the properties in 
+        // the work array at the current index in the loop.
+        for (let place of graph[at]) {
+            if (place == to) return route.concat(place);
+            // If the destination we need is beside the current place we are looking at, return 
+            // this route with the name of the place added to it. 
+
+            if (!work.some(w => w.at == place)) {
+                // the some() method returns true if any of the elements pass the test specified by the 
+                // callback function
+
+                // If none of the ats are == to any of the places in the destination array in the graph
+                work.push({at: place, route: route.concat(place)});
+            }
+        }
+    }
+}
+
+// work is an array of places that should be explored next along with the route that got us there
+
+// Okay I will go through a loop of this:
+
+
+
+/*
+Let's say we want to go from: Alice's House to: Marketplace
+We'll keep track of what work looks like:
+
+from = "Alice's House"
+to = "Marketplace"
+
+Iteration 1:
+
+work = [{at: "Alice's House", route:[]}] 
+
+for(let i = 0; i < work.length; i++){
+    i = 0
+    let {at, route} = work[i]
+    // this sets at to "Alice's House" and route to []
+
+    for(let place of graph[at]) {
+        // graph[at] == ["Bob's House", "Cabin", "Post Office"]
+        // so place in our first iteration is "Bob's House"
+
+        if (place == to) return route.concat(place)
+        // This doesn't pass because place(Bob's House) is not equal to "Marketplace"
+
+        // So the function below goes through and we add an object that looks like this:
+        // {at: "Bob's House", route: ["Bob's House"]} to the work array
+        if(!work.some(w=> w.at == place)){
+            work.push({at: place, route: route.concat(place)})
+        }
+        // !!!* This for loop will then iterate two more times, with "Cabin" and "Post Office"
+        // as the place and will add them to the work array
+    }
+ }
+
+ Iteration 2:
+
+
+work = [{at: "Alice's House", route:[]}, 
+        {at: "Bob's House", route: ["Bob's House"]}, 
+        {at: "Cabin:, route: ["Cabin"]},
+        {at: "Post Office", route: ["Post Office"]}] 
+
+for(let i = 0; i < work.length; i++){
+    i = 1
+    let {at, route} = work[i]
+    // this sets 'at' to "Bob's House" and 'route' to ["Bob's House"]
+
+    for(let place of graph[at]) {
+        // graph[at] == ["Town Hall"]
+        // so place in our first iteration is "Town Hall"
+
+        if (place == to) return route.concat(place)
+        // This doesn't pass because place(Town Hall) is not equal to "Marketplace"
+
+        // So the function below goes through and we add an object that looks like this:
+        // {at: "Town Hall, route: ["Bob's House", "Town Hall"]} to the work array
+        if(!work.some(w=> w.at == place)){
+            work.push({at: place, route: route.concat(place)})
+        }
+    }
+ }
+
+
+ Iteration 3:
+
+ work = [{at: "Alice's House", route:[]}, 
+         {at: "Bob's House", route: ["Bob's House"]},
+         {at: "Cabin:, route: ["Cabin"]},
+         {at: "Post Office", route: ["Post Office"]}, 
+         {at: "Town Hall", route: ["Town Hall", "Bob's House"]}]; 
+
+for(let i = 0; i < work.length; i++){
+    i = 2
+    let {at, route} = work[i]
+    // this sets 'at' to "Town Hall" and 'route' to ["Bob's House", "Town Hall"]
+
+    for(let place of graph[at]) {
+        // graph[at] == ["Bob's House", "Marketplace", "Daria's House", "Shop-Town"]
+        // so place in our first iteration is "Town Hall"
+
+        if (place == to) return route.concat(place)
+        // This doesn't pass because place(Town Hall) is not equal to "Marketplace"
+
+        // So the function below goes through and we add an object that looks like this:
+        // {at: "Town Hall, route: ["Bob's House", "Town Hall"]} to the work array
+        if(!work.some(w=> w.at == place)){
+            work.push({at: place, route: route.concat(place)})
+        }
+    }
+ }
+
+
+ // There are more iterations after this but eventually we would reach a final destination with 
+ // a readable route array and will be the shortest one. It's the shortest one because it will go
+ // through from the Alice's House's roads first before moving on to, Bob's House and looking through
+ // the Town Hall. 
+
+ The last iteration will show that the shortest route is ["Post Office", "Marketplace"]
+ which will be returned.
+
+ It adds one step to the each route for each new {at} that is added.
+
+ So the web of routes builds evenly across all possible routes.
+
+
+*/
+
+
+function goalOrientedRobot({place, parcels}, route){
+    if (route.length == 0){
+        let parcel = parcels[0];
+        if (parcel.place != place) {
+            route = findRoute(roadGraph, place, parcel.place);
+        } else {
+            route = findRoute(roadGraph, place, parcel.address);
+        }
+    }
+    return {direction: route[0], memory: route.slice(1)};
 }
