@@ -1,3 +1,5 @@
+// Exercises are below Robot program
+
 const roads = [
     "Alice's House-Bob's House", "Alice's House-Cabin", "Alice's House-Post Office", 
     "Bob's House-Town Hall", "Daria's House-Ernie's House", "Daria's House-Town Hall", 
@@ -68,7 +70,7 @@ function randomRobot(state) {
   return {direction: randomPick(roadGraph[state.place])};
 }
 
-VillageState.random = function(parcelCount = 5) {
+VillageState.random = function(parcelCount) {
     let parcels = [];
     for (let i = 0; i < parcelCount; i++) {
       let address = randomPick(Object.keys(roadGraph));
@@ -94,6 +96,12 @@ VillageState.random = function(parcelCount = 5) {
     }
   }
 
+  const mailRoute = [
+    "Alice's House", "Cabin", "Alice's House", "Bob's House",
+    "Town Hall", "Daria's House", "Ernie's House",
+    "Grete's House", "Shop", "Grete's House", "Farm",
+    "Marketplace", "Post Office"
+  ];
   function routeRobot(state, memory) {
     if (memory.length == 0) {
       memory = mailRoute;
@@ -113,5 +121,75 @@ VillageState.random = function(parcelCount = 5) {
     return {direction: route[0], memory: route.slice(1)};
   }
 
-  runRobot(VillageState.random(),
-                  goalOrientedRobot, []);
+
+/**** Measuring a Robot ******/
+
+/*
+It’s hard to objectively compare robots by just letting them solve a few scenarios. 
+Maybe one robot just happened to get easier tasks, or the kind of tasks that it is good at, whereas the other didn’t.
+
+Write a function compareRobots that takes two robots (and their starting memory). 
+It should generate 100 tasks and let each of the robots solve each of these tasks. 
+When done, it should output the average number of steps each robot took per task.
+
+For the sake of fairness, make sure that you give each task to both robots, rather 
+than generating different tasks per robot.
+*/
+
+
+
+
+  // create an array of random village states, with different numbers of parcels. Robot 1 will go and then robot 2
+
+  // Create 100 tasks
+  // Robots do each task, one at a time
+  // We should return a number of steps each robot took to compelete the task
+  // We should record the step number in an array
+  // We should compute the average number of steps for each array.
+
+  function generateRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+  }
+
+
+  function runRobotCompare(state, robot, memory) {
+    for (let turn = 0;; turn++) {
+      if (state.parcels.length == 0) {
+        return turn;
+      }
+      let action = robot(state, memory);
+      state = state.move(action.direction);
+      memory = action.memory;
+    //   console.log(`Moved to ${action.direction}`);
+    }
+  }
+
+
+  function compareRobots(robot1, memory1, robot2, memory2) {
+    let taskArray = [];
+    // Generate Tasks
+    for (let i = 0; i < 100; i++){
+        let parcelCount = generateRandomInt(15);
+        taskArray.push(VillageState.random(parcelCount));
+    }
+
+    let robotOneStepsPerTask = [];
+    let robotTwoStepsPerTask = [];
+
+    for(let i = 0; i < taskArray.length; i++) {
+        let steps1 = runRobotCompare(taskArray[i], robot1, memory1);
+        let steps2 = runRobotCompare(taskArray[i], robot2, memory2);
+        robotOneStepsPerTask.push(steps1);
+        robotTwoStepsPerTask.push(steps2);
+    }
+    let averageRobotOne = robotOneStepsPerTask.reduce((accum, curr) => 
+                        {return accum + curr})/ robotOneStepsPerTask.length;
+
+    let averageRobotTwo = robotTwoStepsPerTask.reduce((accum, curr) => 
+                        {return accum + curr})/ robotTwoStepsPerTask.length;
+    console.log("First Robot: " + averageRobotOne);
+    console.log("Second Robot: " + averageRobotTwo);
+  }
+  
+compareRobots(routeRobot, [], goalOrientedRobot, []);
+

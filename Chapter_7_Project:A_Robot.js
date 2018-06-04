@@ -520,13 +520,26 @@ for(let i = 0; i < work.length; i++){
 
 
 function goalOrientedRobot({place, parcels}, route){
+    // remember the robot returns a direction and memory
+    // memory is the next steps in our route
+
+
+    // If the memory which is also the route list is empty, we find a new place to try and go to.
     if (route.length == 0){
         let parcel = parcels[0];
+        // So we take the first parcel of our array of parcels and check if it's at our current location
+        // if not, we go and pick it up.
         if (parcel.place != place) {
             route = findRoute(roadGraph, place, parcel.place);
         } else {
+        // If it's at our current location, we go and find a route to deliver the parcel
             route = findRoute(roadGraph, place, parcel.address);
         }
     }
     return {direction: route[0], memory: route.slice(1)};
 }
+
+
+// The memory value is used as a list of directions to move in
+
+// Whenever the memory list is empty, 
