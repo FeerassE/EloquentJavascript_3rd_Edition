@@ -8,7 +8,6 @@ const roads = [
     "Marketplace-Town Hall", "Shop-Town Hall",
 ]
 
-
 function buildGraph(edges) {
     let graph = Object.create(null);
     function addEdge(from, to) {
@@ -109,12 +108,14 @@ VillageState.random = function(parcelCount) {
     return {direction: memory[0], memory: memory.slice(1)};
   }
 
-  function goalOrientedRobot({place, parcels}, route) {
+  function goalOrientedRobot({place, parcels}, route){
     if (route.length == 0) {
       let parcel = parcels[0];
       if (parcel.place != place) {
+        // Pick up parcel
         route = findRoute(roadGraph, place, parcel.place);
       } else {
+        // Deliver Parcel
         route = findRoute(roadGraph, place, parcel.address);
       }
     }
@@ -191,5 +192,81 @@ than generating different tasks per robot.
     console.log("Second Robot: " + averageRobotTwo);
   }
   
-compareRobots(routeRobot, [], goalOrientedRobot, []);
 
+
+/*
+Robot efficiency
+
+Can you write a robot that finishes the delivery task faster 
+than goalOrientedRobot? If you observe that robot’s behavior, what obviously 
+stupid things does it do? How could those be improved?
+
+If you solved the previous exercise, you might want to use your compareRobots 
+function to verify whether you improved the robot.
+
+// Your code here
+
+*/
+
+// Not finding an ideal path based on first parcel in list but closes parcel to current location.
+// Or finding an ideal path 
+// We could create a closest parcel function that find the closest parcel to the current location of a parcel
+// Then we do that for every possible element in the array
+// Needs to be able to make the decision, deliver first or get parcel?
+
+// The goal oriented robot does this:
+// It only makes the decision of whether to drop off the parcel if it has one or
+// to go pick up a parcel if it does not have one
+// It finds the shortest route to either of those decisions
+
+// We should try to find a way to organize which parcels we choose to pick up instead of
+// just choosing the next one in the array list. We can also try and figure out if we want ot pick up
+// more parcels or to deliver instead
+
+// Keep in mind that the parcels Array contains all the parcel locations and addresses
+
+function closestNode(parcels) {
+  // Choose the closest parcel when we have no parcels at our current location
+  // Drop off parcel or pick up another parcel? Need to do this based off of graph
+
+}
+
+
+
+function parcelChoosingRobot({place, parcels}, route){
+  if (route.length == 0){
+    let parcel;
+
+    let possibleRoutes = [];
+    for(let i = 0; i < parcels.length; i++) {
+      if (parcels[i].place == place) {
+        parcel = parcels[i];
+        possibleRoutes = [];
+        break;
+      }
+      else {
+        let possibleRoute = findRoute(roadGraph, place, parcels[i].place);
+        possibleRoutes.push(possibleRoute.length);
+      }
+    }
+    
+    if(parcel == undefined) {
+      let smallestRoute = Math.min.apply(null, possibleRoutes);
+      let index = possibleRoutes.indexOf(smallestRoute);
+      parcel = parcels[index];
+      console.log(parcel);
+    }
+
+    //Now we should have our next parcel, which should also be the closest one.
+    if (parcel.place != place) {
+      // Pick up parcel
+      route = findRoute(roadGraph, place, parcel.place);
+    } else {
+      // Deliver Parcel
+      route = findRoute(roadGraph, place, parcel.address);
+    }
+  }
+  return {direction: route[0], memory: route.slice(1)};
+}
+
+compareRobots(parcelChoosingRobot, [], goalOrientedRobot, []);
