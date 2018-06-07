@@ -225,40 +225,37 @@ function to verify whether you improved the robot.
 
 // Keep in mind that the parcels Array contains all the parcel locations and addresses
 
-function closestNode(parcels) {
-  // Choose the closest parcel when we have no parcels at our current location
-  // Drop off parcel or pick up another parcel? Need to do this based off of graph
-
-}
-
-
 
 function parcelChoosingRobot({place, parcels}, route){
   if (route.length == 0){
     let parcel;
-
     let possibleRoutes = [];
-    for(let i = 0; i < parcels.length; i++) {
-      if (parcels[i].place == place) {
-        parcel = parcels[i];
+    let parcelsToPickUp = parcels;
+
+    for(let i = 0; i < parcelsToPickUp.length; i++) {
+      if (parcelsToPickUp[i].place == place) {
+        parcel = parcelsToPickUp[i];
         possibleRoutes = [];
         break;
       }
       else {
-        let possibleRoute = findRoute(roadGraph, place, parcels[i].place);
+        let possibleRoute = findRoute(roadGraph, place, parcelsToPickUp[i].place);
         possibleRoutes.push(possibleRoute.length);
       }
     }
     
+    
     if(parcel == undefined) {
       let smallestRoute = Math.min.apply(null, possibleRoutes);
       let index = possibleRoutes.indexOf(smallestRoute);
-      parcel = parcels[index];
-      console.log(parcel);
+      parcel = parcelsToPickUp[index];
+      parcelsToPickUp.splice(index, 1);
+
+      console.log(parcelsToPickUp);
     }
 
     //Now we should have our next parcel, which should also be the closest one.
-    if (parcel.place != place) {
+    if (parcelsToPickUp.length > 1) {
       // Pick up parcel
       route = findRoute(roadGraph, place, parcel.place);
     } else {
@@ -269,4 +266,58 @@ function parcelChoosingRobot({place, parcels}, route){
   return {direction: route[0], memory: route.slice(1)};
 }
 
-compareRobots(parcelChoosingRobot, [], goalOrientedRobot, []);
+
+
+
+// Need to rewrite, need to prioritize picking up parcels over delivering
+// Need to choose shortest route to picking up
+
+// So prioritizing parcels may not be that great of an idea because what if you had a bunch of 
+// package nodes connected in the form of a circle and each one had it's delivery address node connected
+// to it's respective package. You would have to circle around twice, first picking up the packages and second 
+// delivering them.
+
+function closestParcel(graph, place, parcels) {
+  // Choose the closest parcel when we have no parcels at our current location
+  // Drop off parcel or pick up another parcel? Need to do this based off of graph
+
+  let work = [];
+
+  for(let i=0; i<parcels.length; i++) {
+    let route = findRoute(graph, place, parcels[i].place);
+    work.push({parcel: parcels[i], routeLength: route.length})
+  }
+
+  let closestParcel = undefined;
+
+  for(let i = 0; i<work.length; i++) {
+    if (closestParcel === undefined) {
+      closestParcel = work[i];
+    }
+    else if (closestParcel.routeLength > work[i].routeLength) {
+      closestParcel = work[i];
+    }
+  }
+
+  return closestParcel.parcel;
+}
+
+function improvedRobot({place, parcels}, route) {
+  
+  if (route.length == 0){
+    let parcel = closestParcel(roadGraph, place, parcels);
+
+    if (parcel.place != place) {
+        route = findRoute(roadGraph, place, parcel.place);
+    } else {
+    // If it's at our current location, we go and find a route to deliver the parcel
+        route = findRoute(roadGraph, place, parcel.address);
+    }
+  }
+return {direction: route[0], memory: route.slice(1)};
+}
+
+
+compareRobots(improvedRobot, [], goalOrientedRobot, []);
+
+// Okay I was right actually, choosing the closest parcel does work.
