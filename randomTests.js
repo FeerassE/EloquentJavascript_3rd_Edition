@@ -13,3 +13,7 @@ function truthyTester(thing){
 }
 
 truthyTester(apple);
+
+let array = [];
+
+console.log(typeof array);

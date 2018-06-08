@@ -645,7 +645,6 @@ class Temperature{
     set fahrenheit(value) {
         this.celsius = (value - 32) / 1.8
     }
-
     static fromFahrenheit(value) {
         return new Temperature((value))
     }
