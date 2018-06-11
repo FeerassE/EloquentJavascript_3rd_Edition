@@ -413,12 +413,12 @@ let ab = a.add("b");
 console.log(ab.group)
 let b = ab.delete("a");
 console.log(b.group)
-// console.log(b.has("b"));
-// // → true
-// console.log(a.has("b"));
-// // → false
-// console.log(b.has("a"));
-// // → false
+console.log(b.has("b"));
+// → true
+console.log(a.has("b"));
+// → false
+console.log(b.has("a"));
+// → false
 
 
 
