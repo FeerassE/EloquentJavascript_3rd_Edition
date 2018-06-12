@@ -84,5 +84,297 @@ let ferdinand2 = Person("Ferdinand"); // Forgot 'new' keyword
 // "use strict" also disallows giving a function multiple parameters with the 
 // same name.
 
+
+
 //********** * Types ****************//
 
+/* 
+Some languages care about the types of all your bindings, in that they won't even run
+the program before it knows all of the types of your bindings and expressions. 
+
+JavaScript only considers types when actually running the program. It even tries to 
+implicitly convert values to the type it expects, so it's not much help
+
+Try and comment in what the types are for you function
+
+TypeScript adds checks to the language and checks them. It is a dialect of JavaScript.
+*/
+
+
+
+//*********** * Testing **************//
+
+
+function test(label, body) {
+    if (!body()) console.log(`Failed: ${label}`);
+  }
+  
+  test("convert Latin text to uppercase", () => {
+    return "hello".toUpperCase() == "HELLO";
+  });
+  test("convert Greek text to uppercase", () => {
+    return "Χαίρετε".toUpperCase() == "ΧΑΊΡΕΤΕ";
+  });
+  test("don't convert case-less characters", () => {
+    return "مرحبا".toUpperCase() == "مرحبا";
+  });
+
+
+  // 'Test Suites' provide many useful tests.
+  // They give us a bunch of tests that we call 'Test Runners'
+
+
+
+
+  /************* * Debugging **************/
+
+
+
+  /* 
+  The program below tries to convert a whole number to a string in a given base (decimal, binary and so on),
+  by repeatedly picking out the last digit and then dividing the number to get rid of this digit. However, the 
+  strange output it produces has a bug. 
+  */
+  function numberToStringWrong(n, base = 10) {
+    let result = "", sign = "";
+    if (n < 0) {
+      sign = "-";
+      n = -n;
+    }
+    do {
+      result = String(n % base) + result;
+      n /= base;
+    } while (n > 0);
+    return sign + result;
+  }
+//   console.log(numberToStringWrong(13, 10));
+// → 1.5e-3231.3e-3221.3e-3211.3e-3201.3e-3191.3e-3181.3…
+
+
+// remember the modulo operator (%) returns the remainder of being divided by a number
+// 10 % 3 returns 1
+
+
+/*
+Putting a few strategic console.log calls into the program is a good way to get additional 
+information about what the program is doing. In this case, we want n to take the values 13, 1, and then 0.
+ Let’s write out its value at the start of the loop.
+
+13
+1.3
+0.13
+0.013
+…
+1.5e-323
+
+Right. Dividing 13 by 10 does not produce a whole number. Instead of n /= base, what we 
+actually want is n = Math.floor(n / base) so that the number is properly “shifted” to the right.
+*/
+
+function numberToString(n, base = 10) {
+    let result = "", sign = "";
+    if (n < 0) {
+      sign = "-";
+      n = -n;
+    }
+    do {
+      console.log("n is: "+ n);
+      result = String(n % base) + result;
+      console.log("result is: " + result);
+
+      n = Math.floor(n/base);
+    } while (n > 0);
+    return sign + result;
+  }
+console.log(numberToString(13, 2));
+
+/*
+
+1:1
+2:10
+3:11
+4:100
+5:101
+6:110
+7:111
+8:1000
+9:1001
+10:1010
+11:1011
+12:1100
+13:1101
+*/
+
+
+
+
+//************* * Error Propagation ***********//
+
+// How do we respond to outside faulty input? Don't let the program just crash.
+
+// The function below asks for a whole numbers and returns it.
+// What happens if the user inputs "orange".
+
+// One option is to return a special value. Ex: Null, undefined
+// or -1.
+
+function promptNumber(question) {
+    let result = Number(prompt(question));
+    if (Number.isNaN(result)) return null;
+    else return result;
+}
+console.log(promptNumber("How many trees do you see?"));
+
+// This works but what if we're dealing with a function
+// that can return any kind of value. Example below returns
+// an element from an array.
+
+// We'll return an object with a property called failed
+// that explicitly is true or false.
+
+function lastElement(array) {
+    if (array.length == 0) {
+        return {failed: true};
+    } else {
+        return {element: array[array.length - 1]};
+    }
+}
+
+
+/************ * Exceptions ************/
+
+/*
+When a function can't proceed normally, we want to stop what we are
+doing and jump to a place that knows how to handle the problem.
+*/
+
+
+// Exceptions allow code that runs into a problem to raise or 
+// throw an exception. Allows the code to keep running.
+// Exceptions can be any value.
+
+// An exception is a super return?
+// Exceptions zoom down the call stack and throw away all the 
+// call contexts it encounters
+// Their power apparently comes from setting "obstacles" along the stack to 'catch' exception as it
+// zooms down. 
+
+// Once you've caught an exception, you can do something with to address the problem and then continue 
+// to run the program. 
+
+function promptDirection(question) {
+    let result = prompt(question);
+    if (result.toLowerCase() == "left") return "L";
+    if (result.toLowerCase() == "right") return "R";
+    throw new Error("Invalid direction: " + result);
+}
+
+function look() {
+    if (promptDirection("Which way?") == "L") {
+        return "a house";
+    } else {
+        return "two angry bears";
+    }
+}
+
+try {
+    console.log("You see", look());
+} catch (error) {
+    console.log("Something went wrong: " + error);
+}
+
+// The 'throw' keyword is used to raise an exception.
+// Catching an exception is done by using a 'try' block.
+// When the code in the 'try' block causes an exception to be raised
+// the catch block is evaluated.
+// After the try block finishes, the program proceeds beneath both
+// the catch and the try block.
+
+// Here we used the 'Error' constructor to create an exception value.
+// The 'Error' constructor has a 'message' property. 
+// This constructor also gathers information about the call stack that 
+// existed when the exception was thrown, which is called the 'stack trace'.
+// 'stack trace' has information about where the error happened and which function
+// may have caused the error. 
+
+// Notice that the 'look()' function doesn't seem to have to worry about any errors
+// happening.
+
+
+
+/************** * Cleaning Up After Exceptions *************/
+
+/*
+What is control flow?
+
+The effects of exceptions are another kind of control flow. Every actions that might 
+cause an exception, which is almost all function calls and property acces, might control to suddenly
+leave you code. *********** WHAT DOES THIS MEAN?
+
+When code has several side effects, even if its "regular" control flow looks like they'll always all happen, 
+an exception might prevent some of them from taking place.
+
+Below is very bad banking code
+*/
+
+const accounts = {
+    a: 100,
+    b: 0,
+    c: 20,
+};
+
+function getAccount() {
+    let accountName = prompt("Enter an account name");
+    if (!accounts.hasOwnProperty(accountName)) {
+        throw new Error(`No such account: ${accountName}`);
+    }
+    return accountName;
+}
+
+function transfer(from, amount) {
+    if (accounts[from] < amount) return;
+    accounts[from] -= amount;
+    accounts[getAccount()] += amount;
+}
+
+// Transfer function needs to know from which account to take money from. Then 
+// in the body of the transfer function, the 'getAccount()' function, will prompt
+// the user and ask for which account to transfer TO. 
+
+// HOWEVER, notice that if getAccount() is broken off and does proceed, the money
+// has ALREADY BEEN REMOVED from the old account. So the money just disappears and 
+// goes nowhere.
+
+
+
+// We could move 'getAccount()' to before but problems like this can show up
+// in more subtle ways.
+
+
+// The book adovcates for a programming style that uses few side effects.
+// It says we should compute new values instead of changing existing data. 
+// If a piece of code stops running in the middle of creating a new value, we won't end
+// up seeing the half finished value.
+
+// This isn't always practical so there is another feature that 'try' statements have. They 
+// may be followed by a 'finally' block. 'finally' can either replace or be in addition 
+// to a 'catch' block. 
+
+// 'finally' block says "no matter what happens, run this code after trying to run the code
+// in the try block."
+
+
+function transfer(from, amount) {
+    if(accounts[from] < amount) return;
+    let progress = 0;
+    try {
+        accounts[from] -= amount;
+        progress = 1;
+        accounts[getAccount()] += amount;
+        progress = 2;
+    } finally {
+        if (progress ==1) {
+            accounts[from] += amount;
+        }
+    }
+}
