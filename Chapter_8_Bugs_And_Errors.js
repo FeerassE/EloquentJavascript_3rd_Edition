@@ -373,8 +373,65 @@ function transfer(from, amount) {
         accounts[getAccount()] += amount;
         progress = 2;
     } finally {
-        if (progress ==1) {
+        if (progress == 1) {
             accounts[from] += amount;
         }
     }
 }
+
+// If the 'finally' block finds that the progress is only at 1, it will add the amount back to
+// the account. 
+
+// The 'finally' block doesn't mess with the exception. After the 'finally' block runs,
+// the stack continues to unwind (wtf does that mean?);
+
+
+
+/********** * Selective Catching ***************/
+
+/*
+If the exception makes it all the way to the bottom of the stack
+without being caught, it get handled by the JavaScript enviornment. 
+
+Node.js is more careful about data corruption and aborts the whole
+process when an unhandled exception occurs.
+
+Allowing an error to go through and letting the browser show the error,
+is a reasonable way to signal a broken program. 
+
+For problems that are expected to happen during routine use, this is a 
+terrible strategy. 
+
+We can actually catch errors like when something that isn't a function is called, 
+or when looking up a property on null or referencing a nonexistant binding. 
+
+
+JavaScript doesn't provide direct support for selectively catching exceptions:
+either it catches all of them or it doesn't catch any. So if it catches an error,
+that wasn't the intended error, you might not notice it! 
+*/
+
+// Program below ATTEMPTS to keep calling promptDirection until it gets a valid answer:
+
+for(;;) {
+    try {
+        let dir = promtDirection("Where?") ; // typo!   Should be promptDirection
+        console.log("You chose", dir);
+        break;
+    } catch(e) {
+        console.log("Not a valid direction. Try again.")
+    }
+}
+
+
+// The for(;;) this makes a loop that doesn't break on its own. 
+
+/*
+We misspelled promptDirection which will result in an "undefined variable" error. 
+The catch block wrongly treats the binding error as indicating bad input. It doesn't do anything
+with (e) the exception value.
+*/
+
+// Don't blanket-catch exceptions unless it's for routing them somwhere
+// like telling another system over a network that the program crashed.
+
