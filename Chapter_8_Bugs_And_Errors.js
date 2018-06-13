@@ -435,3 +435,76 @@ with (e) the exception value.
 // Don't blanket-catch exceptions unless it's for routing them somwhere
 // like telling another system over a network that the program crashed.
 
+// How do we make sure we get the exception that we want?
+
+// We won't compare the message property in the error with the error we expect
+// because the message is meant for human consumption not for progrommatic
+// decisions.
+
+class InputError extends Error {}
+
+function promptDirection(question) {
+    let result = prompt(question);
+    if (result.toLowerCase() == "left") return "L";
+    if (result.toLowerCase() == "right") return "R";
+    throw new InputError("Invalid direction: " + result);
+}
+
+// Okay so we've created an instance of the 'Error' object.
+// 'InputError' objects behave like 'Error' objects but have a different
+// class by which we recognize them. 
+// 'Error' objects expect a string message as an argument.
+
+// So what will happen is that if no direction is chosen, the promptDirection function will throw
+// a 'InputError' error, and the catch block in the for loop below will catch it. If any other 
+// error occurs, the catch block will catch that error as well. 
+
+for (;;) {
+    try {
+      let dir = promptDirection("Where?");
+      console.log("You chose ", dir);
+      break;
+    } catch (e) {
+      if (e instanceof InputError) {
+        console.log("Not a valid direction. Try again.");
+      } else {
+        throw e;
+      }
+    }
+}
+
+
+/********** * Assertions ***********/
+
+/*
+Assertions are checks inside a program to verify that something is
+the way it's supposed to be.
+Made to find programer mistakes
+
+The function 'firstElement' below checks to see if the array is empty.
+If it is, it throws an error
+*/
+
+function firstElement(array) {
+    if(array.length == 0) {
+        throw new Error("firstElement called with []");
+    }
+    return array[0];
+}
+
+// Instead of return undefined, the program will loudly show you
+// the error. 
+
+
+/************ * Summary ****************/
+// Throwing an exception causes the call stack to be unwound until the next enclosing
+// try/catch block or until the bottom of the stack.
+
+// The exception values are given to the 'catch' block, which should verify that it is
+// actually the expected kind of exception and then it should do something with it.
+
+// 'finally' block acn be used to ensure that a piece of code always runs when a block 
+// finishes.
+
+// So basically throwing an error interrupts a program and immediately runs the error and goes 
+// to the catch blox;
