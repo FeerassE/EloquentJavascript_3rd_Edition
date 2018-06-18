@@ -17,3 +17,14 @@ truthyTester(apple);
 let array = [];
 
 console.log(typeof array);
+
+
+// ********** Chapter 9 *********
+// **** Date Class ****
+
+// Testing syntax below
+
+let [first, second, third] = ["string: first", "string: second", "string: third"];
+
+console.log(first);
+// log:       string: first
