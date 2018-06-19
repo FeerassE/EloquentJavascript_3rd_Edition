@@ -364,6 +364,7 @@ console.log(getDate("1-30-2003"));
 
 
 
+
 /********** * Word and String Boundaries ***********/
 
 // Problem:
@@ -375,7 +376,7 @@ console.log(getDate("1-30-2003"));
 // We use the caret (^) and dollar symbol ($).
 
 // The caret (^) matches the start of the input string
-// The dollar sign (^) matches the end of the string.
+// The dollar sign ($) matches the end of the string.
 
 // *NOTE* The caret symbol (^) in a set notation(ex: [^p]) means anything but that character.
 // I believe it has a different meaning OUTSIDE of the set notation.
@@ -403,7 +404,7 @@ console.log("Testing noString: " + noString.test("x"));
 let xAfterCaret = /^x/;
 
 // xAfterCaret should match any string that starts with an x.
-console.log("Testing xAfterCaret: " + xAfterCaret.test("x"));
+console.log("Testing xAfterCaret: " + xAfterCaret.test("xbox"));
 // log: true
 
 
@@ -435,5 +436,164 @@ console.log(/\bconcatenate\b/.test("concatenatep"));
 
 
 
-/*********** * Choice Pattersn ***********/
+/*********** * Choice Patterns ***********/
+
+// How do we figure this out:
+// Does a string contain not only a number but a number
+// followed by one of the words pig, cow chicken or any
+// of their plural forms?
+
+// we can write three regular expressions and test them in turn
+// or we can use the pipe character (|);
+
+let animalCount = /\b\d+ (pig|cow|chicken)s?\b/;
+console.log(animalCount.test("15 pigs"));
+// log: true
+
+// remember whatever character is BEFORE the question mark character
+// it is optional.
+
+console.log(animalCount.test("15 pigchickens"));
+// log: false
+
+// Use parantheses to limit which parts of the pattern the pipe character
+// works for.
+
+
+
+
+/*********** * The Mechanics of Matching ************/
+
+// The methods 'test' and 'exec' use a matching engine.
+// The matching engine matches the regexpression from the
+// start of the string and then to the next character in the 
+// string until it reaches the end of the string. 
+
+
+// Below is an example of the steps taken through a string of 
+// a matching engine. 
+
+// First let's assume that each character in a string(including spaces)
+// has a position number.
+
+// flow chart of regex expression
+
+/*
+                               Group 1
+                               ______________________    
+                               |                     |    loop 
+                               |        "pig"        |     ___
+                               |                     |    |   |
+boundary ----- digit--- " " ---|        "cow"        |---- "s"-------- boundary
+              |_____|          |                     |
+                               |      "chicken"      |
+                ^loop          |_____________________|
+
+*/
+
+
+
+// Let's say we're matching the string "the 3 pigs" but we're starting at position 4 (at the space)
+// The matching engine actually looks at the character after the position we're at.
+
+
+
+//  String:    "the 3 pigs"
+
+// We're going to use this regexp expression
+/*    /\b\d+ (pig|cow|chicken)s?\b/     */
+
+// Step 1:
+// At position 4 there is a word boundary, so we move past the boundary box in the flow chart.
+
+
+//Step 2:
+// At position 4 there is a digit ahead so we pass the second boxes test.
+
+//Step 3:
+// At position 5 we have the choice of looping back if there is another digit but there isn't so 
+// we keep moving past the second box to the third box(space). We pass the third box's test so we
+// move to the next position.
+
+//Step 4:
+// At position 6 we see of the three branch choices, "pig" is the one that we want, so 
+// we take that branch and pass that box.
+
+//Step 5:
+// At position 9 the matching engine looks ahead has a choice to either match the 's'
+// or if there is no 's', then to not match. It finds an 's' so continues on.
+
+//Step 6:
+// At position 10 we can only match a word boundary. The end of the string counts as a 
+// word boundary so we match the string and have successfully matched the string.
+
+
+
+
+/************* * Backtracking ************/
+
+// This part is interesting.
+// So the regex engine basically acts as an itertor and loops to find a match.
+// You can make the regex engine do a lot of work if you create inefficient loops with you
+// pattern. 
+
+/* 
+The regex expression /\b([01]+b|[\da-f]+h|\d+)\b/   has three conditions it can match between word
+boundaries:
+- it matches a binary number with the letter 'b' afterwards. *** Pay attention to the fact that
+  it's in a set notation with a plus sign after, so it can be any combination of 0s or 1s. 
+or
+- it matches hexadecimal digit. A hexadecimal digit has a base of '16' with the letters 
+  a-f standing in for the number 10-15.
+or
+- it matches a regular decimal number 
+*/
+
+
+// Refer to figure 2
+
+// So there's some things to consider about the matching engine and efficiency
+// Let's say we're matching the string "103".
+
+// Notice that the branch will begin going through the first branch(the binary number branch) before 
+// it notices that '3' at the end of '103' does not fit that pattern! 
+// So the matcher has to BACKTRACK and 
+// The branch that does work is the last branch(decimal number). 
+
+/*
+Let's look at this regex pattern:
+
+/^.*x/
+
+Remember:
+
+The period (.) symbol means it will match any character
+that is not a newline.
+
+The star (*) symbol means that we can have multiples of
+the character before the star or none of that character.
+
+The caret symbol(^) at the front means the prospective match
+must begin with the character after the caret symbol.
+
+*/
+
+// Backtracking happens also for repetition operators
+// like the (+) and (*) 
+
+
+/*
+
+If we match /^.*x/ against the string "abcxe", the .* part will 
+first try and match the whole string. 
+That doesn't work because the match needs to end at the x.
+
+So the matching engine backtracks to position 4 but doesn't
+find an 'x' at the end. 
+
+So the .* pattern tries position 3 and finds that there is an x
+at the end of the string so it matches "abcx".
+
+*/
+
 
