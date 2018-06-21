@@ -213,6 +213,7 @@ console.log(cartoonCrying.test("Boohoooohoohooo"));
 // The 'exec' (execute) method will return 'null' if no match was found
 // and return an object with info about the match.
 
+
 let match = /\d+/.exec("one two 100");
 console.log(match);
 // log: [100]
@@ -827,4 +828,85 @@ console.log(text.replace(regexp, "_$1_"));
 // The second argument in a RegExp constructor are the options for a 
 // regular expression. Here we added 'g' for global and 'i' for case
 // insensitive.
+
+
+// creating a RegExp to capture "dea+hl[]rd" will be more difficult. 
+// Because the regexp constructor will think those symbols are a part of the
+// pattern.
+
+// We fix this by adding two slashes behind everyone of those symbols in the  name.
+let name2 = "dea+hl[]rd";
+let text2 = "This dea+hl[]rd guy is super annoying.";
+
+let escaped = name2.replace(/[\\[.+*(){|^$}]/g, "\\$&");
+// So 'escaped' will replace every match, with the whole match itself($&) but with a 
+// slash (\) added infront. 
+
+let regexp2 = new RegExp("\\b" + escaped + "\\b", "gi");
+console.log(text2.replace(regexp2, "_$&_"));
+// log: this _dea+hl[]rd_ guy is super annoying. 
+
+
+
+
+/************ * The Search Method *************/
+
+// We can't use a regular expression with the indexOf method on strings.
+
+// We can use the method search though. 
+// Search returns the first index on which the expression was found, or 
+// -1 if it wasn't found.
+
+// \S means a character that is NOT a white space character
+// \s means a whitespace character
+console.log("    word".search(/\S/));
+// log: 2
+console.log("      ".search(/\S/));
+// log: -1
+
+
+
+/********** * The LastIndex Property ***********/
+
+// The 'exec' method provides an inconvenient way to start
+// searching from a given position in the strig. 
+
+/*
+
+'lastIndex' is a property that, in a limited way, controls 
+where the next match will start. 
+It must have the global(g) or the sticky(y) option enabled, and must happen through the
+'exec' method. 
+
+*/
+
+// Remember that 'global' (g) matches every occurence of the pattern in the string.
+
+
+let pattern = /y/g;
+pattern.lastIndex = 3;
+// We tell the pattern to match starting at index 3 of the string.
+let match = pattern.exec("xyzzy");
+
+// The match engine find a match at index 4.
+console.log(match.index);
+// log: 4
+
+console.log(pattern.lastIndex);
+// log: 5
+
+// The 'lastIndex' property is 5 now because the match is successful and 
+// points to the index right after the match. 
+
+// If no match is found, 'lastIndex' will be set back to zero. 
+// Zero is also the value of lastIndex in a newly constructed regex object. 
+
+
+let global = /abc/g;
+console.log(global.exec("xyz abc"));
+// log: ["abc"];
+let sticky = /abc/y;
+console.log(sticky.exec("xyz abc"));
+// log: null
+
 
