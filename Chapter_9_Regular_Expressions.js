@@ -27,7 +27,7 @@ To traverse the contents. Crtl-F the star plus the name of the subheading. ex: C
 */
 
 // Regular Expressions are a small separate language in JavaScript that describe
-// patters in strings.
+// patterns in strings.
 
 
 /************ * Creating a Regular Expression **********/
@@ -596,4 +596,235 @@ at the end of the string so it matches "abcx".
 
 */
 
+
+// Problem: We can write regular expressions that do too much backtracking
+
+// Example:
+//          /([01]+)+b/
+
+// Okay I don't think this is explained very well but, I believe this is happening:
+
+// refer to figure 3
+
+// flow chart:
+
+
+/*      
+       ___ __0__ ___
+------|   |  1  |   |-----"b"
+      |   |_____|   |
+      |             |
+      |_____________|
+
+*/
+
+
+/*
+Okay let's say that we're trying to match using the pattern : /([01]+)+b/   
+but there isn't a b at the end of string of 0s and 1.
+
+So when the matching engine gets to the end of the 0s and 1s, it will try to find a 'b' at the 
+end of the string. It doesn't find one so it goes back one position and rematches(I think!) for both
+the inner and outer loop. 
+
+So this apparently doubles the work on each character. 
+
+I will need clarification on this topic!!!
+*/
+
+
+
+/*********** * The Replace Method **********/
+
+// The replace method can be used to replace part of a string
+// with another string
+
+
+console.log("papa".replace("p", "m"));
+// log : mapa
+
+
+// The first argument can also be a regular expresssion.
+
+console.log("Borobudur".replace(/[ou]/, "a"));
+// log: Barobudur
+
+// Notice that only the first match of the regular expression is replaced.
+// How do we fix this?
+// Use the 'g' character.
+
+// 'g' stands for global, so all matches in the string are replaced.
+
+
+console.log("Borobudur".replace(/[ou]/g, "a"));
+
+/*
+Let's say we want to augment a big string containing the names of people, one name per
+line, in the format Lastname, Firstname.
+
+Ex: "Liskov, Barbara\nMcCarthy, John\nWadler, Philip"
+
+How do we augment this string so that we remove the commas and swap the first and last names so
+they are like this Firstname Lastname.
+
+*/
+
+console.log("Liskov, Barbara\nMcCarthy, John\nWadler, Philip"
+            .replace(/(\w+), (\w+)/g, "$2 $1"));
+// log: 
+// Barbara Liskov
+// John McCarthy
+// Philip Wadler
+
+
+// The $1 and $2 in the replacement string refer to the parenthesized groups
+// in the pattern. 
+
+// $1 is replaced the text matched against the first group, $2 the second, $3 etc..
+// and goes up to $9.
+
+// The whole match can be refered with $&.
+
+
+
+// Using functions in the replace method:
+
+// We can use functions in the second parameter of the replace method.
+// Whatever gets matched from the regex pattern in the first arugment,
+// will get passed to the function in the second argument(which might change it) and then
+// gets returned by that function to replace the matched text in the string.
+
+
+//Example below:
+
+let s = "the cia and fbi";
+console.log(s.replace(/\b(fbi|cia)/g, str => str.toUpperCase()));
+// log: the CIA and FBI
+
+
+// Another example:
+
+
+let stock = "1 lemon, 2 cabbages, and 101 eggs";
+function minusOne(match, amount, unit) {
+  amount = Number(amount) - 1;
+  if (amount == 1){ // only one left, remove the 's
+    unit = unit.slice(0, unit.length - 1);
+  } else if (amount == 0) {
+    amount = "0"
+  }
+  return amount + " " + unit;
+} 
+console.log(stock.replace(/(\d+) (\w+)/g, minusOne));
+// log: no lemon, 1 cabbage, and 100 eggs
+
+// So creating groups will allow us to use each part of the string separately
+// as arguments in the function.
+// Notice that the matching engine, for each match, returns the full match as well 
+// as each group in parantheses as separate values. 
+
+
+
+
+/*********** * Greed ************/
+
+// We'll write a function to remove all comments from a piece of JavaScript code.
+
+function stripComments(code){
+  return code.replace(/\/\/.*|\/\*[^]*\*\//g,"")
+}
+
+console.log(stripComments("1 + /* 2 */3"));
+// → 1 + 3
+console.log(stripComments("x = 10;// ten!"));
+// → x = 10;
+console.log(stripComments("1 /* a */+/* b */ 1"));
+// → 1  1
+
+
+/* 
+So in the replace pattern above, the first section of the pattern:
+                \/\/.*
+is saying, match two slashes and anything after them that is not
+a new line character. This works for the double slashes because
+we don't have to worry about multiple lines. 
+
+The second section of the pattern:
+\/\*[^]*\*\/
+
+Needs to compensate for newlines. How does it do this?
+It uses this [^]
+The caret symbol inside of set brackets means
+anything but the set of characters inside. In this case there are
+no characters inside the set brackets, so it's saying "anything but
+no characters."
+
+We then add a star so it becomes [^]* so that we can match for none or
+multiple of characters. 
+
+
+*/
+
+// Why is the last pattern wrong?
+
+
+/*
+
+The [^]* part of the expression will attempt to match as much of
+the string as it can. (Why? I thought regexp patterns always match to the left).
+
+IMPORTANT: Because the operators + and * actually try and match the whole string and then
+backtrack if the string doesn't match until it gets a match!!!!!
+
+So why doesn't it the pattern work? Because it tries to consume the whole string and 
+then backtracks and finds an ending comment symbol. 
+
+*/
+
+// Because of this, repetition operators (+, *, ? and {}) are GREEDY.
+// They try and match as much as they can and then backtrack from there.
+
+// We can make them NONGREEDY by putting a question mark after the operator like so:
+// (+? , *? , ?? , {}?)
+// Now they match as little as possible. 
+
+function stripCommentsNonGreedy(code){
+  return code.replace(/\/\/.*|\/\*[^]*?\*\//g, "");
+}
+
+console.log(stripCommentsNonGreedy("1 /* a */+/* b */ 1"));
+// log: 1 + 1
+
+
+
+
+/*********** * Dynamically Creating Regexp Objects **********/
+
+/*
+Let's say we want to find a name in a text and we want to put an underscore
+at the beginning and end of the name, so we can highlight it. 
+
+However, we do not know the name beforehand. We'll only know the name
+once we run the program. 
+
+How can we add the name to a regexp pattern dynamically instead of having it 
+hard coded?
+
+*/
+
+let name = "harry";
+let text = "Harry is a suspicious character";
+let regexp = new RegExp("\\b(" + name + ")\\b", "gi");
+console.log(text.replace(regexp, "_$1_"));
+
+// So apparently we have to put two slashes before the 'b' because
+// we've enclosed the boundary marker in a string. Why though?
+
+// I tested it with one slash and it doesn't work.... Why not?
+
+// Need to come back to this...
+
+// The second argument in a RegExp constructor are the options for a 
+// regular expression. Here we added 'g' for global and 'i' for case
+// insensitive.
 
