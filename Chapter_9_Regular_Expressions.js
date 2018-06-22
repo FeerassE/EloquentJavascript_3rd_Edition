@@ -213,6 +213,19 @@ console.log(cartoonCrying.test("Boohoooohoohooo"));
 // The 'exec' (execute) method will return 'null' if no match was found
 // and return an object with info about the match.
 
+// From mozilla: 
+// The exec() method exectues a serch for a match in a specified string. Returns
+// a result array, or 'null'.
+
+/*
+The returned array has the matched text as the first item, and then one item for 
+each capturing parenthesis that matched containing the text that was captured.
+*/
+
+// If we want to go through each match in a pattern using the 'exec' method, we
+// should add the global option to the pattern and put the exec method in a loop. 
+// Read more about this at the end of the "LastIndex Property" chapter.
+
 
 let match = /\d+/.exec("one two 100");
 console.log(match);
@@ -886,10 +899,10 @@ It must have the global(g) or the sticky(y) option enabled, and must happen thro
 let pattern = /y/g;
 pattern.lastIndex = 3;
 // We tell the pattern to match starting at index 3 of the string.
-let match = pattern.exec("xyzzy");
+let match2 = pattern.exec("xyzzy");
 
 // The match engine find a match at index 4.
-console.log(match.index);
+console.log(match2.index);
 // log: 4
 
 console.log(pattern.lastIndex);
@@ -902,6 +915,11 @@ console.log(pattern.lastIndex);
 // Zero is also the value of lastIndex in a newly constructed regex object. 
 
 
+
+// The difference between the (g) and (y) options, is that global will try and find
+// a match ahead of lastIndex where sticky(y) will succeed only if a match is directly 
+// lastIndex. 
+
 let global = /abc/g;
 console.log(global.exec("xyz abc"));
 // log: ["abc"];
@@ -910,3 +928,283 @@ console.log(sticky.exec("xyz abc"));
 // log: null
 
 
+// So there's another problem with the 'exec' method and string's 'lastIndex' property.
+// Notice below that because the first call sets the lastIndex property to a position after
+// the end of the string, the next call will start after the string which will make the matching,
+// engine fail, and return null.
+
+let digit = /\d/g;
+console.log(digit.exec("here it is: 1"));
+// log: ["1"]
+console.log(digit.exec("and now: 1"));
+// log: null
+
+
+// I don't understand 'exec' very well. 
+// So the book says that the global(g) option has an interesting effect on the 'match' method.
+// If we set the option to global, the 'match' method will return all matches of the pattern in the
+// string and return an array containing the matched strings.
+
+// Why is this a problem? How does 'exec' act differently??????????
+// 'exec' won't match everything in a string, unless you loop. Notice above that 
+// the lastIndex property moves to the end of the last match of the most recent
+// call to 'exec'
+
+console.log("Banana".match(/an/g));
+// log: ["an", "an"];
+
+// I need to do tests on the exec method.
+
+
+/*********** * Looping Over Matches *************/
+
+// Common to loop over matches with exec.
+
+let input = "A string with 3 numbers in it.. 42 and 88.";
+let number3 = /\b\d+\b/g;
+
+// Remember:
+// What is a word boundary? \b  \b  
+// These are saying, match this pattern to \w (a word character) and \W (a non word character)
+
+let match3;
+while (match3 = number3.exec(input)) {
+   // This while loop will break when the exec function returns 'null' once its lastIndex property
+   // is the past the end of the string. 
+
+  console.log(match3);
+  console.log("Found", match3[0], "at", match3.index);
+}
+// log: Found 3 at 14
+// log: Found 42 at 33
+// log: Found 88 at 40
+
+
+
+
+/*********** * Parsing An INI File ************/
+
+/*
+
+We're going to write a prgram that automatically collects information about
+our enemies form the Internet.
+
+We'll use Regular Expressions
+
+*/
+
+// We're going to use a configuration file that is in the INI file format, more info
+// coming:
+
+/*
+
+searchengine=https://duckduckgo.com/?q=$1
+spitefulness=9.7
+
+; comments are preceded by a semicolon...
+; each section concerns an individual enemy
+[larry]
+fullname=Larry Doe
+type=kindergarten bully
+website=http://www.geocities.com/CapeCanaveral/11451
+
+[davaeorn]
+fullname=Davaeorn
+type=evil wizard
+outputdir=/home/marijn/enemies/davaeorn
+
+*/
+
+
+/*
+  Rules of the INI format:
+
+- Blank lines and lines starting with semicolons are ignored.
+- Lines wrapped in[ and ] start a new section.
+- Lines containing an alphanumeric identifier followed by an = character
+  add a setting to the current section. 
+- Anything else is invalid
+
+*/
+
+// Task:
+// Convert a string like this into an object whose properties hold
+// strings for settings written BEFORE the FIRST SECTION HEADER and properties
+// that hold subobjects for sections. These subobjects' properties will hold 
+// the settings for their respective section. 
+
+/*
+
+                    Object
+                    /    \
+            settings      sections(objects)
+                                    \
+                                    settings
+*/
+
+
+/*
+Questions:
+What does this string looks like?
+
+Probably something like:
+"search_engine=https://randomsite.com\nbigsetting=thirtyfour\n[firstsection]\nsubsetting=monkey\nanothersubsetting=cute\n"
+*/
+
+// Summary of task: We're changing a string to an object.
+
+// The format is processed line by line, so we know that there will new line characters(\n) in the string to represent this.
+// We'll need to get access to the text inbetween these new line characters(\n). 
+// We'll use string.split() to do this.
+
+// string.split(), splits a string up along the given function parameter and returns each split part
+// as individual elements in an array. 
+
+// So we can split along (\n) however, some oeprating systems also use a carriage return character (\r)
+// as well as a newline ("\r\n")
+
+
+// The split method also allows for a regular expression as it's argument, 
+
+function parseINI(string) {
+  // Start with an object to hold the top-level-fields
+  let result = {};
+  let section = result;
+  // Why is section set to result?????
+  // Because we are going to look at global settings first before we go 
+  // to specific settings.
+
+  // The section binding points to the object for the current section.
+  string.split(/\r?\n/).forEach(line => {
+    let match;
+  if (match = line.match(/^(\w+)=(.*)$/)) {
+    // We are finding a setting.
+    // The pattern above says if the start of the string(*) starts with a word character(\w) and possibly other
+    // word characters followed by an equal sign and ends with any character except a new line(.), then we match.
+
+    // Okay so I think this is what's happening:
+    // The match method will return an array of three elements. The first element is the whole match, the
+    // second element at index 1, will be the match in the first parentheses (\w+). The third element at 
+    // index 2, will be the match in the second parentheses.
+
+    // The 'section' object will have a variable with a key of the first element in the array (\w+) and 
+    // its property will be the second element in the match array (.*).
+    section[match[1]] = match[2];
+  } else if (match = line.match(/^\[(.*)\]$/)) {
+    // We're finding sections.
+    // We set the key to the matched text from the pattern above.
+    // Then we give it an empty object as its property. 
+    
+    // Why are we setting 'section' to this object?
+    // Because we are now looking at this object, so the next following lines
+    // will be settings associated with this section. 
+    section = result[match[1]] = {};
+  } else if (!/^\s*(;.*)?$/.test(line)) {
+    // Pattern above says:
+    // If the line is not a bunch of white spaces or  a semicolon(which
+    // signifies a comment for INI files) we throw an error. 
+    // The question mark is saying that even a line of just white spaces
+    // is okay.
+
+    // Because if it's a comment or an empty line, we just move past, but if it's
+    // an invalid format, we throw an error. 
+    throw new Error("Line '" + line + "' is not valid.");
+  }
+  })
+  return result;
+}
+
+console.log(parseINI(
+`name=Vasilis
+[address]
+city=Tessaloniki`
+));
+
+
+/*
+Note the recurring use of ^ and $ to make sure the expression matches the 
+whole line, not just part of it. Leaving these out results in code that 
+mostly works but behaves strangely for some input, which can be a difficult 
+bug to track down.
+*/
+
+/*********** * International Characters **********/
+
+// For JavaScript 'word characters' are only the characters in the Latin alphabet.
+
+console.log(/🍎{3}/.test("🍎🍎🍎"));
+// → false
+console.log(/<.>/.test("<🌹>"));
+// → false
+console.log(/<.>/u.test("<🌹>"));
+// → true
+
+// JavaScript treats the symbols above has having two code units.
+// So the period above should match a single character, but the rose is composed of two code units
+// so it doesn't work.
+
+// You have to add the 'u' (for Unicode) to regular expressions to make it treat such characters 
+// properly. 
+
+// We can recognize a language using a now standardized regexp character (\p) pattern. 
+// The (u) option must be enabled though. 
+
+// console.log(/\p{Script=Greek}/u.test("α"));
+// // → true
+// console.log(/\p{Script=Arabic}/u.test("α"));
+// // → false
+// console.log(/\p{Alphabetic}/u.test("α"));
+// // → true
+// console.log(/\p{Alphabetic}/u.test("!"));
+// // → false
+
+// ^ The code above doesn't work. Even in the notes.
+
+
+/******* * Summary *********/
+
+/*
+Regular expressions are objects that represent patterns in strings. 
+They use their own language to express these patterns.
+
+// Summary of pattern elements 
+
+
+/abc/	A sequence of characters
+/[abc]/	Any character from a set of characters
+/[^abc]/	Any character not in a set of characters
+/[0-9]/	Any character in a range of characters
+/x+/	One or more occurrences of the pattern x
+/x+?/	One or more occurrences, nongreedy
+*/
+
+// /x*/	Zero or more occurrences
+
+/*
+
+/x?/	Zero or one occurrence
+/x{2,4}/	Two to four occurrences
+/(abc)/	A group
+/a|b|c/	Any one of several patterns
+/\d/	Any digit character
+/\w/	An alphanumeric character (“word character”)
+/\s/	Any whitespace character
+/./	Any character except newlines
+/\b/	A word boundary
+/^/	Start of input
+/$/	End of input
+
+*/
+
+/*
+Methods:
+test()  : A regular expression has a method test to test whether a given string matches it. 
+exec() : It also has a method exec that, when a match is found, returns an array containing all matched groups. 
+          Such an array has an index property that indicates where the match started.
+
+match(): Strings have a match method to match them against a regular expression and a search method to search for one, 
+         returning only the starting position of the match. 
+replace(): Their replace method can replace matches of a pattern 
+           with a replacement string or function.
+
+*/
