@@ -70,6 +70,8 @@ let eighteenPlus = /eighteen\+/;
 // expression.
 
 console.log(/abc/.test("abcde"));
+
+
 // log: true
 
 console.log(/abc/.test("abxde"));
