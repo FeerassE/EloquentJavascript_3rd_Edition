@@ -95,7 +95,6 @@ console.log(text.replace(/\B'/g, '"'));
 
 
 /*
-
 Numbers again
 
 Write an expression that matches only JavaScript-style numbers. It must support 
@@ -105,11 +104,10 @@ that it is not necessary for there to be digits in front of or after the dot, bu
 the number cannot be a dot alone. That is, .5 and 5. are valid JavaScript numbers, but 
 a lone dot isn’t.
 
-
 */
 
 // Fill in this regular expression.
-let number = /^((\+|\-)?(\d+))|(\d+\.\d*)|(\d*\.\d+)|(\d+\.\d+)|(\d+\.\d+e\d+)|(\d+e(\-|\+)?\d+)$/;
+let number = /^(\-|\+)?(((\d+)\.?\d*)|((\d*)\.?\d+))([eE](\-|\+|)(\d+))?$/i;
 
 // Tests:
 for (let str of ["1", "-1", "+15", "1.55", ".5", "5.",
@@ -124,3 +122,14 @@ for (let str of ["1a", "+-1", "1.2.3", "1+1", "1e4.5",
     console.log(`Incorrectly accepted '${str}'`);
   }
 }
+
+// All can be negative or positive
+// (\-|\+)?
+// Whole number for sure and possible decimal number
+// ((\d+)\.(\d*))
+// Whole number not for sure and for sure decimal number
+// ((\d*)\.(\d+))
+// Decimal after whole number followed by an e
+// ((\d+)\.(\d+)[eE](\-|\+)?(\d+))
+// No decimal exponent
+// ((\d+)[eE](\-|\+)?(\d+))
