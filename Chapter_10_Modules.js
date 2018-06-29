@@ -15,6 +15,7 @@ To traverse the contents. Crtl-F the star plus the name of the subheading. ex: C
 * ECMAScript Modules
 * Building and Bundling
 * Module Design
+* Summary/ Extra Help
 
 */
 
@@ -357,3 +358,50 @@ for (let node of Object.keys(roadGraph)) {
 console.log(find_path(graph, "Post Office", "Cabin"));
 
 // log: ["Post Office", "Alice's House", "Cabin"]
+
+
+
+//********** * Summary/ Extra Help ************
+
+// *note* I noticed that I can't export more than one module in the same file?????
+// YOU CAN, SET MODULES TO AN OBJECT AND REFERENCE THE FUNCTIONS IN THE OBJECT.
+/*
+Example:
+module.exports = {
+    createEdges,
+    buildGraph
+};
+*/
+
+// A simple way to create a module
+
+// In module file:
+
+/*
+function add (a, b) {
+  return a + b
+}
+
+module.exports = add
+*/
+
+
+// In importing file:
+/*
+const add = require('./add')
+
+console.log(add(4, 5))
+*/
+
+// Under the hood, module file is wrapped this way:
+/*
+(function (exports, require, module, __filename, __dirname) {
+  function add (a, b) {
+    return a + b
+  }
+  module.exports = add
+})
+*/
+
+
+
