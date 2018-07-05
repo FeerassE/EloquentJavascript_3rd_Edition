@@ -539,6 +539,8 @@ class Matrix{
 
 // This class stores its contents in an array of length WIDTHxHEIGHT. The elements get stored row by row.
 // I don't really know what element = (x,y) => undefined is. 
+// element = (x,y) => undefined is allowing us to overwrite the body of the element function with function logic when 
+// we create a new instance of the class. 
 // Okay so I think it's setting each element value to a function value and it is undefined,
 // until when it's called and the user will define the function as a parameter. 
 // So everytime you 'get' an element value, the value will be a function.

@@ -96,7 +96,7 @@ const weekDay = function() {
   // scope.
 
   // Apparently, if we want to make dependencies 
-  // a thing, we'll ahve to take control of loading dependencies.
+  // a thing, we'll have to take control of loading dependencies.
   // This will require that are able to execute strings, as code.
 
   // Javascript can do this.
@@ -243,6 +243,9 @@ function require(name) {
         // their available to the scope of the module.
         wrapper(require, module.exports, module);
     }
+    // I believe that when the exports object is returned is when 
+    // it is actually loaded. Before this, it's just preparing
+    // and caching the module. 
     return require.cache[name].exports;
 }
 
