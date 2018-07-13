@@ -1,1 +1,219 @@
 //************ * Asynchronous Programming ************/
+
+/* 
+
+To traverse the contents. Crtl-F the star plus the name of the subheading. ex: Crtl-F[* Classes]
+  Table of Contents
+  -----------------------------
+* Asynchronicity
+* Crow Tech
+* Callbacks
+* Promises
+* Failure
+* Networks are Hard
+* Collections of Promises
+* Network Flooding
+* Message Routing
+* Async Functions
+* Generators
+* The Event Loop
+* Asynchronous Bugs
+* Summary
+
+*/
+
+
+
+/*
+The processor carries out the instructions of the program sequentially. 
+
+Programs also communicate with things outside the processor, like 
+computer networks. Communications on a computer network are much
+slower than a processor.
+
+It would be great if we could something else while those slow instructions 
+are trying to resolve. 
+
+*/
+
+
+/************ * Asynchronicity *********/
+
+/*
+In synchronous programming, things happen one at a time.
+If a step takes a long time, it will only continue to the next step once
+that long-running step has finished.
+*/
+
+
+/*
+An asynchronous model allows multiple things to happen at the same time.
+When you start an action, the program continues to run. 
+When the actions finishes, the program is informed and gets access to the result.
+*/
+
+/*
+
+/*
+Aight, I'm going to explain what I've understood:
+
+'synchronous' & 'asynchronous' have very little to do with multiple threads. 
+It has more to do with "do task's inputs require the outputs of another 
+task to run (synchronous)" and "can you begin tasks before other tasks have ended"
+*/
+
+/*
+The solution for synchronous actions is to have more than one thread of control.
+
+Both Node.js and the browser run things asynchronously instead of relying on threads.
+*/
+
+
+
+/************* * Crow Tech *************/
+
+/*
+Working with nodes and synchronicity.
+
+Premise is crows and termites have built a network across small
+village in france. Each node point is a termite hill or something.
+*/
+
+// Callback Functions
+// When functions take a while to produce a result,
+// you can give these functions another function called
+// the "Callback function". The "Callback function" will
+// be called when the parent function finishes it's action.
+
+
+setTimeout(() => console.log("Tick"), 500);
+
+
+// setTimeout() waits in milliseconds before calling the callback function.
+
+// Crows write JSON data. 
+// readStorage() takes time to fetch the data.
+// "food caches" holds an array of location names that describe where the data
+// is actually stored.
+
+
+import {bigOak} from "./crow-tech";
+
+bigOak.readStorage("food caches", caches => {
+  let firstCache = caches[0];
+  bigOak.readStorage(firstCache, info => {
+    console.log(info);
+  });
+});
+
+
+// The indentation gets worse and worse with more actions that are needed 
+// for "Callback funcitons".
+
+
+// Crows' Nests communicate using request-response pairs.
+// So when a nest sends a request message, the recieving 
+// nest will send a response message with a confirming receipt and possibly
+// a reply. 
+
+// Each message is tagged with 'type', which tells us how to handle it.
+
+
+/*
+"./crow-tech" gives us an interface that uses callback-based functions.
+
+The function 'send' will send a request and expects four arguments.
+1. The name of the target nest
+2. The type of request
+3. The content of the request 
+4. A callback function when a response is recieved.
+*/
+
+bigOak.send("Cow Pasture", "note", "Let's caw loudly at 7PM",
+            () => console.log("Note delivered."));
+
+// We must define the type 'note' so that all nests can recieve this 
+// request type.
+
+import {defineRequestType} from '.crow/tech';
+
+defineRequestType("note", (nest, content, source, done) => {
+  console.log(`${nest.name} recieved note: ${content}`);
+  done();
+})
+
+
+// I don't understand. Is defineRequestType() representing the nest
+// sending the message or the one recieving.
+// That the console.log in the body, shouldn't it only be called
+// when the request has gotten a response back.
+// Yes it should, because defineRequestType, is not the actual
+// request call, it is only defining what should happen after
+// the type!
+
+// So defineRequestType adds support for "note" requests.
+// I think the nest argument refers to the 'recieving' nest.
+
+// The 'done' function is a callback function
+
+// This section is poorly written. We have no idea
+// what the body of the defineRequestType function
+// looks like, so it's hard to figure out how it's integratedinto
+// the rest of the funciton.
+
+// So the defineRequestType() function gives the request handler
+// the arguments in the parantheses. (I think)
+
+
+// What it's saying about the 'done' function is that
+// it is needed instead of the return value of the 
+
+
+// I can't make sense of this at all. 
+// done() is called because we need a callback function to signal
+// when a response is available or something.
+
+
+// Asynchronicity is contagious. A
+// Any function that calls a function asynchronously must be 
+// asynchronous 
+
+
+
+/************ * Promises ************/
+
+// Promises allow us to return an object that represents 
+// a future event.
+
+// This is done instead of calling a function at some later time.
+
+// The 'Promise' class returns a 'promise' which is an asynchronous
+// action 
+
+// Promise.resolve() wraps the value you give it in a promise.
+
+let fifteen = Promise.resolve(15);
+fifteen.then(value => console.log(`Got ${value}`));
+// Got 15
+
+
+// You can use the 'then' method to use a callback function on a promise.
+// You can attach multiple callback functions to one promise, using
+// the 'then' method.
+
+
+// Promises allow us to make values asynchronous.
+// The value is either already there or might appear in the future.
+
+// You can use the Promise constructor.
+// The cunstructor expects a function as an argument, which it 
+// immediately calls, passing it a function that it can use to 
+// resolve the promise.
+
+function storage(nest, name) {
+  return new Promise(resolve => {
+    nest.readStorage(name, result => resolve(result));
+  });
+}
+
+storage(bigOak, "enemies").then(value => console.log("Got", value));
