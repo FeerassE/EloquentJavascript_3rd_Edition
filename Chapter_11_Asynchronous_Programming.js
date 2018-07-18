@@ -206,7 +206,7 @@ fifteen.then(value => console.log(`Got ${value}`));
 // The value is either already there or might appear in the future.
 
 // You can use the Promise constructor.
-// The cunstructor expects a function as an argument, which it 
+// The constructor expects a function as an argument, which it 
 // immediately calls, passing it a function that it can use to 
 // resolve the promise.
 
@@ -217,3 +217,82 @@ function storage(nest, name) {
 }
 
 storage(bigOak, "enemies").then(value => console.log("Got", value));
+
+
+
+/********** * Failure **********/
+
+// Asynchronous functions need to be able to throw errors in case something
+// like a request not working.
+
+// Apparently the problem with the callback style is that it makes it extremely
+// difficult to make sure failurs are properly reported ot the callbacks.
+
+// Promises make this easier, they can be either resolved or rejected.
+
+// Resolve handlers (registered with 'then') are called only when the 
+// action is successful, and rejections are automatically sent to the 
+// new promised returned by 'then'.
+
+// When a handler throws an 'exception', this causes the promise produced
+// by its 'then' call to be rejected.
+
+// Any element in a chain of asynchronous actions that fails, will mark
+// the whole chain as rejected and no success handlers are called beyond
+// the point it failed.
+
+
+// Resolving a function provides a value.
+// Rejecting one also provides a value which is called 'reason' of the rejection.
+
+// Promise.reject() creates an immediately rejected promise.
+
+// Promises have a 'catch' method that registers a handler to be called when a 
+// promise is rejected.
+
+// 'then' also accepts a rejection handler as the second argument
+
+
+// Notice below how the Promise has a chain of 'then' methods and 'catch' methods.
+
+new Promise((_, reject) => reject(new Error("Fail")))
+  .then(value => console.log("Handler 1"))
+  .catch(reason => {
+    console.log("Caught failure " + reason);
+    return "nothing";
+  })
+  .then(value => console.log("Handler 2", value));
+// → Caught failure Error: Fail
+// → Handler 2 nothing
+
+
+/*********** * Networks are Hard ***********/
+
+// We'll add timeouts so that if a response value
+// is never sent back, we deal with that.
+
+// We'll also make it try sending the request
+// a few times.
+
+
+
+class Timeout extends Error {}
+
+function request(nest, target, type, content) {
+  return new Promise((resolve, reject) => {
+    let done = false;
+    function attempt(n) {
+      nest.send(target, type, content, (failed, value) => {
+        done = true;
+        if (failed) reject(failed);
+        else resolve(value);
+      });
+      setTimeout(() => {
+        if (done) return;
+        else if (n < 3) attempt(n + 1);
+        else reject(new Timeout("Timed out"));
+      }, 250);
+    }
+    attempt(1);
+  });
+}
