@@ -1,4 +1,7 @@
 
+// These notes are from You Don't Know JS async book
+
+
 /*
 Any time you wrap a portion of code into a function and specify that it 
 should be executed in response to some event (timer, mouse click, Ajax response, etc.), 
@@ -101,3 +104,12 @@ schedule( function(){
 I'm still wondering what the difference is between async where one line happens ten lines before
 and async where an event occurs later or a user inputs data and sets a value.
 */
+
+
+/*
+Better to not think of async being a line done 10 lines ahead. It is more like, async allows us 
+to wait for a value to return and while we wait, we can still continue with the rest of the program.
+*/
+
+
+

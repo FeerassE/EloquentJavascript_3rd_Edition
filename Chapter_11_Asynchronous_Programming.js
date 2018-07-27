@@ -69,6 +69,19 @@ Both Node.js and the browser run things asynchronously instead of relying on thr
 */
 
 
+/*
+Here's more info:
+
+The browser environment gives us WepAPIs like ajax.
+
+What happens in async is that async actions actually wait in the web api's. When they're done resolving for a value,
+they get pushed NOT to the callstack but to the callback qeue, where it waits until the stack is finished. THEN the event loop pushes
+the callback to the callstack when the callstack is empty.
+
+
+
+*/
+
 
 /************* * Crow Tech *************/
 
@@ -138,13 +151,14 @@ bigOak.send("Cow Pasture", "note", "Let's caw loudly at 7PM",
 import {defineRequestType} from '.crow/tech';
 
 defineRequestType("note", (nest, content, source, done) => {
-  console.log(`${nest.name} recieved note: ${content}`);
+  console.log(`${nest.name} received note: ${content}`);
   done();
 })
 
 
 // I don't understand. Is defineRequestType() representing the nest
-// sending the message or the one recieving.
+// sending the message or the one receiving.
+// The one receiving, I believe.
 // That the console.log in the body, shouldn't it only be called
 // when the request has gotten a response back.
 // Yes it should, because defineRequestType, is not the actual
@@ -152,7 +166,7 @@ defineRequestType("note", (nest, content, source, done) => {
 // the type!
 
 // So defineRequestType adds support for "note" requests.
-// I think the nest argument refers to the 'recieving' nest.
+// I think the nest argument refers to the 'receiving' nest.
 
 // The 'done' function is a callback function
 
@@ -173,6 +187,10 @@ defineRequestType("note", (nest, content, source, done) => {
 // done() is called because we need a callback function to signal
 // when a response is available or something.
 
+// It says that functions that do asynchronous work 'return' before
+// the work is done. So we need a callback function to be called
+// once the work is actually complete.
+
 
 // Asynchronicity is contagious. A
 // Any function that calls a function asynchronously must be 
@@ -182,13 +200,13 @@ defineRequestType("note", (nest, content, source, done) => {
 
 /************ * Promises ************/
 
-// Promises allow us to return an object that represents 
+// The 'Promise' Class allow us to return an OBJECT that represents 
 // a future event.
 
 // This is done instead of calling a function at some later time.
 
 // The 'Promise' class returns a 'promise' which is an asynchronous
-// action 
+// action that when completes produces a VALUE.
 
 // Promise.resolve() wraps the value you give it in a promise.
 
@@ -196,6 +214,10 @@ let fifteen = Promise.resolve(15);
 fifteen.then(value => console.log(`Got ${value}`));
 // Got 15
 
+// Remember how asynchronous functions, are always added to the callstack
+// once it's empty! Does this mean that the value above will only be returned
+// if the callstack is empty? I believe so because Promise.resolve() will make
+// it an asynchronous value. I think...
 
 // You can use the 'then' method to use a callback function on a promise.
 // You can attach multiple callback functions to one promise, using
@@ -217,6 +239,39 @@ function storage(nest, name) {
 }
 
 storage(bigOak, "enemies").then(value => console.log("Got", value));
+
+
+/*
+What is a promise from FunFunFunctions youtube channel:
+
+A promise is an object that takes one callback function:
+
+new Promise(() => {
+
+})
+
+The callback function takes two arguments, a resolve function and a reject function:
+
+new Promise((resolve, reject) => {
+  value.onLoad = function() {
+    resolve(value)
+  }
+
+  value.onError = function() {
+    reject(new Error(msg))
+  }
+})
+
+
+The resolve and the reject functions are called one you have the values you're trying to get.
+
+*/
+
+// Resolve returns a Promise that is resolved with the given value.
+
+// What does it mean to resolve?
+
+// I think resolving is something like 'having the value finally available'.
 
 
 
