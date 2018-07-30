@@ -330,18 +330,25 @@ new Promise((_, reject) => reject(new Error("Fail")))
 // a few times.
 
 
-
 class Timeout extends Error {}
 
 function request(nest, target, type, content) {
   return new Promise((resolve, reject) => {
     let done = false;
     function attempt(n) {
+      // We're keeping track of the parameter 'n' which 
+      // represents the number of events.
+
       nest.send(target, type, content, (failed, value) => {
+        // nest.send will do a request and should resolve to a value
         done = true;
         if (failed) reject(failed);
         else resolve(value);
       });
+      // setTimeout will call 'attempt' again after 250 milliseconds if we're below 2 attempts(n).
+
+      // notice that nest.send is an async function so setTimeout will be called even if .send has not
+      // has not received a response and it's callback has not been called. 
       setTimeout(() => {
         if (done) return;
         else if (n < 3) attempt(n + 1);
@@ -351,3 +358,127 @@ function request(nest, target, type, content) {
     attempt(1);
   });
 }
+
+
+// Apparently regular loops don't allow you to stop and wait for retries. 
+// That's why attempt is called recursively.
+
+// What if the handler's taking some time, so we end up with multiple requests back.
+
+
+
+function requestType(name, handler) {
+  // I think requestType tells the nests what type of request it will receive and what to do about it.
+  defineRequestType(name, (nest, content, source, callback) => {
+    try {
+      Promise.resolve(handler(nest, content, source))
+      .then(response => callback(null, response),
+            failure => callback(failure));
+    } 
+    catch (exception) {
+      callback(exception);
+    }
+  });
+}
+
+// I have very little idea what requestType does.
+
+// Seems to use defineRequestType, but gives it  a handler. The handler is wrapped in a promise
+// so we can expect that the handler resolves to a value.
+
+// I think the callback returns an error so we propogate the error to the 'catch'???
+
+
+
+
+/************ * Collections of Promises *************/
+
+
+// EAch nest computer has a property called 'neighbors' that contains
+// an array of nearby computers.
+
+// We're going to send a 'ping' to those that are reachable.
+
+// Promise.all returns a promise that ways for all the promises in the array to resolve.
+// If one promise is rejected, the result of Promise.all is rejected.
+
+
+requestType("ping", () => "pong");
+
+
+function availableNeighbors(nest) {
+  let requests = nest.neighbors.map(neighbor => {
+    return request(nest, neighbor, "ping")
+    .then(() => true, () => false)
+    // How come .then doesn't return true or false. Why does it call a callback function?
+    // I think the request will call these anonymous functions when the promise is resolved,
+    // however they're only calling values. If you return on an anymous function that contains a value,
+    // does that value get returned?
+    // Please randomTest file for answer.
+    // No that's not exactly what's happening.
+    // So '.then' is actually returning a Promise. 
+    // The Promise can either resolve (() => true) or it can reject (() => false).
+    // Mozilla's telling me that we are returning true or false actually. How are we doing that?
+
+    // No idea how the line above is happening. 
+  });
+  return Promise.all(requests).then(result => {
+    // Filters out the neighbors element who's corresponding index in the 'result' array is a falsey value (The value would be literally
+    // 'false').
+    return nest.neighbors.filter((_,i) => result[i]);
+  });
+}
+
+
+// Okay this is really important. 
+// Promise.all returns a single promise, however if any of the promises in the array passed to 
+// Promise.all are rejected, all of Promise.all is rejected.
+// 'requests' is an array of true and false values. The corresponding index of each element of the array also corresponds to the index
+// of the elements in the 'neighbors' array. 
+// The '.filter' method does the work of removing falsey values by only passing truthy values(the being the true values)
+
+
+
+/*********** * Network Flooding ************/
+
+// What if we want to talk to nests outside of a nest's neighbors?
+
+// We'll create a type of request that sends automatically to our 
+// nest's neighbours. It will then send it automatically to their 
+// neighbours.
+
+
+import {everywhere} from "./crow-tech";
+
+everywhere(nest => {
+  nest.state.gossip = [];
+});
+
+function sendGossip(nest, message, exceptFor = null) {
+  nest.state.gossip.push(message); // So we're adding the message to the gossip array
+  for (let neighbor of nest.neighbors) {
+    request(nest, neighbor, "gossip", message); // We send a message to the neighbor of type gossip.
+  }
+}
+
+requestType("gossip", (nest, message, source) => {
+  if (nest.state.gossip.includes(message)) return; // If the message is already there, return.
+  console.log(`${nest.name} received gossip '${message}' from ${source}`);
+  sendGossip(nest, message, source);
+});
+
+// We avoid sending the message around the network forever by keep track if gossip is 
+// already in the gossip array. 
+// That means once a nest receives gossip it should send it to other nests. Where does this happen?
+//    I think requestType actually does this...
+//    All everywhere does is set up the state. Each nest must push the message into it's state.gossip
+//    property only when it RECEIVES the message.
+
+// The everywhere function runs code on every nest, to add the state property to each nest and 
+// store gossip there.'
+
+
+// When one node sends a message contagiously in this way, this style
+// of network communication is called "flooding".
+
+sendGossip(bigOak, "Kids with airgun in the park.")
