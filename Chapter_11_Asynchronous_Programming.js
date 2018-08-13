@@ -130,6 +130,7 @@ bigOak.readStorage("food caches", caches => {
 // a reply. 
 
 // Each message is tagged with 'type', which tells us how to handle it.
+// The 'handler' is a function that's called and then produces a response to the received message.
 
 
 /*
@@ -482,3 +483,75 @@ requestType("gossip", (nest, message, source) => {
 // of network communication is called "flooding".
 
 sendGossip(bigOak, "Kids with airgun in the park.")
+
+
+/*********** * Message Routing ************/
+
+// So now we want to send more specific messages from one node
+// to the next.
+
+// We'll want to do this by "flooding" across the network but 
+// I think we're going to try and keep track of whether we've
+// checked that nest before.
+
+// Also we're flooding because we don't know the layout so we'll
+// have to search the neighbors.
+
+requestType("connections", (nest, {name, neighbors}, source) => {
+  // So we're checking below if the connections object has the 
+  // same neighbors as the nest we're looking at.
+  // If it does, we 'return' instead of doing anything because we've
+  // already been here.
+  let connections = nest.state.connections;
+  if (JSON.stringify(connections.get(name)) == 
+      JSON.stringify(neighbors)) return;
+      // Apparently we stringify because objects and arrays 
+      // will only be true if they're the exact same.
+      // Why will they not be the exact same?
+
+  connections.set(name, neighbors);
+  broadcastConnections(nest, name, source);
+  // Now we spread the message to this nest.
+});
+
+function broadcastConnections(nest, name, exceptFor = null) {
+  // We do multiple calls to request, each time with a new neighbor
+  for (let neighbor of nest.neighbors) {
+    if (neighbor == exceptFor) continue;
+    // request function actually carries out the request,
+    // and we specify the type as connections.
+
+    request(nest, neighbor, "connections", {
+      name,
+      neighbors: nest.state.connections.get(name)
+      // nest.state.connections should be the current nest we're at
+    });
+  }
+}
+
+everywhere(nest => {
+  nest.state.connections = new Map;
+  // What is map? I think it's a data structure.
+  nest.state.connections.set(nest.name, nest.neighbors)
+  // nest.state.connections is probably an object with a name and 
+  // an array of neighbors as it's property.
+  broadcastConnections(nest, nest.name);
+});
+
+
+function findRoute(from, to, connections) {
+  let work = [{at: from, via: null}];
+  for (let i = 0; i < work.length; i++) {
+    let {at, via} = work[i];
+    for(let next of connections.get(at) || []) {
+      if (next == to) return via;
+      if (!work.some(w => w.at == next)) {
+        work.push({at: next, via: via || next});
+      }
+    }
+  }
+}
+
+
+// I'm going to take a break from this chapter.
+
