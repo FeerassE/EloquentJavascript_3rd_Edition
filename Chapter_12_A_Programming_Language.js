@@ -20,6 +20,10 @@ To traverse the contents. Crtl-F the star plus the name of the subheading. ex: C
 
 /********** Parsing ************/
 
+// The 'parse' function will give us back an object that has a data type attached to it. 
+// This object will have a type and object might have other objects as properties that will also 
+// have a type.
+
 // A parser is a program that reads a piece of text and produces a data 
 // structure that reflects the structure of the program contained in that text.
 
@@ -189,7 +193,10 @@ type : "apply",
 const specialForms = Object.create(null);
 
 function evaluate(expr, scope) {
-    // What's scope?
+    // Evaluate returns a value!
+
+    // scope is an object whose properties are bindings and the value of 
+    // those properties are the values attached to the bindings.
 
     if (expr.type == "value") {
         // It just returns the value
@@ -247,4 +254,180 @@ specialForms.if = (args, scope) => {
 
 // 'if' is special because other functions will evaluate all of their arguments.
 // 'if' needs to evaluate only the second or third depending on the value of the first.  
+
+
+// while is similar
+
+specialForms.while = (args, scope) => {
+    if (args.length != 2) {
+        throw new SyntaxError("Wrong number of args to while");
+    }
+    while (evaluate(args[0], scope) !== false) {
+        evaluate(args[1], scope);
+    }
+
+    // Since undefined does not exist in Egg, we return false,
+    // for lack of a meaningful result.
+    return false;
+}
+
+
+specialForms.do = (args, scope) => {
+    let value = false;
+    for (let arg of args) {
+        value = evaluate(arg, scope);
+    }
+    return value;
+};
+
+
+// Creating new bindings
+
+// We'll create a special form called 'define'
+
+// Expects a word as its first argument.
+// Expects an expression that produces the value to assing to the word as the second argument.
+
+// 'define' is an expresssion so it must return a value.
+// it will return the value that was assigned like JavaScript's '=' operator. 
+
+specialForms.define = (args, scope) => {
+    if (args.length != 2 || args[0].type != "word") {
+        throw new SyntaxError("Incorrect use of define");
+    }
+    let value = evaluate(args[1], scope);
+    scope[args[0].name] = value;
+    return value;
+}
+
+
+
+/*************** * The Environment *************/
+
+
+// The scope accepted by evaluate is an object with properties whose names
+// correspond to binding names and whose values correspond to the values those bindings
+// are bound to. 
+
+// So 'scope' is an object 
+
+// We'll make the boolean values
+
+const topScope = Object.create(null);
+
+topScope.true = true;
+topScope.false = false;
+
+
+// Apparently we're negating a boolean value below:
+let prog = parse(`if(true, false, true)`);
+console.log(evaluate(prog, topScope));
+// → false
+
+
+// We add each operator binding to the top scope
+for (let op of ["+", "-", "*", "/", "==", "<", ">"]) {
+    topScope[op] = Function("a, b", `return a ${op} b;`);
+}
+
+
+topScope.print = value => {
+    console.log(value);
+    return value;
+};
+
+// The following function provides a convenient way to parse a program
+// and run it in a fresh scope:
+
+// remember that evaluate returns a value and parse returns an data structure object
+function run(program) {
+    return evaluate(parse(program), Object.create(topScope));
+}
+
+// Egg will use object prototype chains to represent nested scopes
+// so that the program can add bindings to its local scope
+// without changing top-level scope.
+
+run(`
+do(define(total, 0),
+   define(count, 1),
+   while(<(count, 11),
+            do(define(total, +(total, count)),
+               define(count, +(count, 1)))),
+               print(total))`
+            );
+            // -> 55
+
+
+
+/************* * Functions ***********/
+
+
+// for the 'fun' construct, the last argument is the 
+// function's body and all arguments before are the 
+// function's parameters
+
+
+specialForms.fun = (args, scope) => {
+    // args is an array
+    if(!args.length) {
+        // There's no arguments as in no body or paramters than throw an error.
+        throw new SyntaxError("Functions need a body");
+    }
+    let body = args[args.length - 1];
+    // the body variable is the last argument in the array.
+    let params = args.slice(0, args.length - 1).map(expr => {
+        // params will be an array of parameters which are words not numbers;
+        if (expr.type != "word") {
+            throw new SyntaxError("Paramater names must be words");
+        }
+        return expr.name;
+    });
+
+    return function() {
+        if (arguments.length != params.length) {
+            throw new TypeError("Wrong number of arguments");
+        }
+        let localScope = Object.create(scope);
+        for(let i = 0; i < arguments.length; i++) {
+            localScope[params[i]] = arguments[i];
+        }
+        return evaluate(body, localScope);
+    };
+};
+
+// Functions in Egg get their own local scope.
+// Function produced by the 'fun' form creates a local scope and adds the 
+// argument bindings to it. 
+// then evaluates the function body in this scope and returns the result. 
+
+run(`
+do(define(plusOne, fun(a, +(a,1))),
+    print(plusOne(10)))
+`);
+// -> 11
+
+run(`
+do(define(pow, fun(base, exp,
+    if(==(exp, 0),
+    1,
+    *(base, pow(base, -(exp, 1)))))),
+    print(pow(2,10)))
+    `);
+// -> 1024
+
+
+
+
+/************* * Compilation ************/
+
+// Process that occurs between parsing and running a program.
+// Allows program to be evaluated more efficiently. 
+
+
+
+/************ * Cheating *************/
+
+// Book talks about creating languages for very specific purposes.
+// They are called: Domain-Specific Languages
 
