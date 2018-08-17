@@ -86,3 +86,112 @@ let answer1 = whatAmIReturning();
 console.log(answer1)
 
 // IT'S RETURNING A PROMISE NOT THE VALUE TRUE OR FALSE!!!!!
+
+whatsTheBoolean = () => {return 0 > 1;}
+
+console.log(whatsTheBoolean());
+
+// false
+
+// If you return inside an inner loop, does the whole function stop?
+
+
+function loop() {
+    for(let i = 0; i < 15; i++) {
+        console.log("outer loop: "+i);
+        for(let p = 0; p < 5; p++) {
+            console.log("inner loop: " + p);
+            return;
+        }
+    }
+}
+
+loop();
+
+
+// outer loop: 0
+// inner loop: 0
+
+function recursive(n = 15){
+    console.log("recursive "+ n);
+    if(n > 0){
+    recursive(n - 1);
+    }
+    return;
+}
+
+recursive();
+
+
+let luigisMansion = {
+    name: "parent",
+    value: "mansion",
+    children: [
+        {name: "child",
+         value: "ghost",
+         children: [
+                        {
+                         name: "child", value:"boo", children: null
+                        }
+                    ]
+        },
+        {name: "child",
+         value: "ghost",
+         children : null
+        },
+        {name: "child",
+         value: "ghost",
+         children: [ 
+                    {name: "leaf",
+                     value: "boo",
+                     children: null
+                    },
+                    {name: "leaf",
+                     value: "please leave me alone",
+                     children: null
+                    }
+                    ]
+        },
+        {name: "child",
+        value: "ghost",
+        children: [
+                       {
+                           name: "leaf", value:"boo", children: null
+                       }
+                   ]
+        },
+        {
+            name: "child",
+            value: "hallway",
+            children: [
+                {
+                    name: "child",
+                    value: "closet",
+                    children: [
+                        {
+                            name: "leaf",
+                            value: "luigi!",
+                            children: null
+                        }
+                    ]
+                }
+            ]
+        }
+
+    ]
+}
+
+function findLuigi(node) {
+    if(node.name == "parent" || "child") {
+        for(let i = 0; i < node.children.length; i++) {
+            if(findLuigi(node.children[i])) {
+                return "luigi says aaaaaaah!";
+            }
+        }
+        return false;
+    } else if (node.name == "leaf") {
+        return node.value == "luigi";
+    }
+}
+
+console.log(findLuigi(luigisMansion));
