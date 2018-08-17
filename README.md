@@ -1,4 +1,4 @@
-# Annotated EloquentJavascript 3rd Edition
+# Annotated Eloquent Javascript 3rd Edition
 
 This is my annotated version of Eloquent JavaScript 3rd edition.
 
