@@ -131,7 +131,7 @@ let luigisMansion = {
          value: "ghost",
          children: [
                         {
-                         name: "child", value:"boo", children: null
+                         name: "leaf", value:"boo", children: null
                         }
                     ]
         },
@@ -170,7 +170,7 @@ let luigisMansion = {
                     children: [
                         {
                             name: "leaf",
-                            value: "luigi!",
+                            value: "luigi",
                             children: null
                         }
                     ]
@@ -182,16 +182,26 @@ let luigisMansion = {
 }
 
 function findLuigi(node) {
-    if(node.name == "parent" || "child") {
-        for(let i = 0; i < node.children.length; i++) {
-            if(findLuigi(node.children[i])) {
-                return "luigi says aaaaaaah!";
+    if((node.name == "parent") || (node.name == "child")) {
+        if (node.children) {
+            console.log(node.value);
+            for(let i = 0; i < node.children.length; i++) {
+                if(findLuigi(node.children[i])) {
+                    return "luigi says aaaaaaah!";
+                }
             }
         }
+        console.log(node.value);
         return false;
     } else if (node.name == "leaf") {
+        console.log(node.value);
         return node.value == "luigi";
     }
 }
 
 console.log(findLuigi(luigisMansion));
+
+// luigi says aaaaah!
+
+// so you can return false in a recursive function and it will continue?
+// does this have something to do with the conditional statements

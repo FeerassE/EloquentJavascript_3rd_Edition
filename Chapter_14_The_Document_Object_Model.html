@@ -1,0 +1,636 @@
+
+
+<!--
+/************ The Document Object Model ***********/
+
+/* 
+
+To traverse the contents. Crtl-F the star plus the name of the subheading. ex: Crtl-F[* Classes]
+  Table of Contents
+  -----------------------------
+* Document Structure
+* Trees
+* Moving Through The Tree
+* Finding Elements
+* Changing The Document
+* Creating Nodes
+* Attributes
+* Layout
+* Styling
+* Cascading Styles
+* Query Selectors
+* Positioning and Animating
+* Summary
+
+*/
+
+
+
+/*
+When opening a web page, browser retrieves the page's HTML text and parses it.
+Browser builds up a model of the document's structure and uses this model to draw 
+the page on the screen. 
+*/
+
+
+/******** * Document Structure *******/
+
+// Each tag is an object. 
+
+// The global binding 'document' gives us access to these objects.
+// It's 'documentElement' property refers to the object representing the <html> tag.
+
+// Every HTML document has a 'head' and a 'body', and also has a 'head' and 'body' property to represent
+// those elements. 
+
+
+
+/********** * Trees ***********/
+
+// The Document Object Model is a nested structure.
+// Each node (branch) can have children (smaller branches) which in turn have their own children and so on. 
+
+// A datastructure is called a 'tree' when it branches and none of its nodes are contained in themselves and
+// the structure also has a well defined root.
+// The DOMs root is document.documentElement
+
+// Trees are better for look ups than flat arrays.
+
+// Trees have nodes which can have child nodes.
+// Leaves are like the values in the Egg language program. They do not have children.
+// Text is a leaf in the DOM.
+
+// DOM Nodes are the 'elements' like document.body
+
+// DOM node objects have a 'nodeType' property.
+// The 'nodeType' property has a code (number) to represent the node type.
+// Code 1 is for 'elements'. The constant property is called Node.ELEMENT_NODE.
+// Code 3 is for text nodes. The constant property is called Node.TEXT_NODE
+// Code 8 is for comments. The constant property is called Node.COMMENT_NODE
+
+
+
+/************ * Moving Through the Tree ************/
+
+// DOM nodes contain links to other nearby nodes.
+
+// Every node has a 'parentNode' property that points to the node it is part of.
+// Every element node(node type 1) has a 'childNodes' property that is an array-like object with 
+// its children.
+
+// Apparently you can move through the tree using this parent and child links.
+
+// There are also convience links that allow you traverse more easily:
+// 'firstChild' property points to the first child element
+// 'lastChild' property points to the last child element.
+// 'previousSibling' points to the node with the same parent, that is directly before this node.
+// 'nextSibling' points to the node with the same parent, that is directly after this node. 
+// 'children' property is like childNodes but contains only type 1 children. Let's you ignore 'Text' children. 
+
+// If there is no child than ____Child properties point to null.
+// If there is no previous or next sibling than the ____Sibling properties point to null.
+
+
+// Recursive functions are useful to traverse nested data structures. 
+
+// The following function scans a document for text nodes containing a given string and returns 
+// 'true' when it's found.
+
+-->
+<script>
+function talksAbout(node, string) {
+    if(node.nodeType == Node.ELEMENT_NODE) {
+        for(let i = 0; i < node.childNodes.length; i++) {
+            if(talksAbout(node.childNodes[i], string)) {
+                return true;
+            }
+        }
+        return false;
+    } else if (node.nodeType == Node.TEXT_NODE) {
+        // If indexOf returns -1 than this whole thing will evaluate to false.
+        return node.nodeValue.indexOf(string) > -1;
+    }
+}
+
+console.log(talksAbout(document.body, "book"));
+// -> true;
+
+// So recursive functions apparently have to return up the call stack?
+
+// Check out the Luigi Mansion function in the tests file.
+
+</script>
+
+<!--
+/************* * Finding Elements ************/
+
+// Usung document.body and following a fixed path of properties is a bad idea.
+// This would assume a precise structure to the document.
+
+-->
+
+<script>
+let link = document.body.getElementsByTagName("a")[0];
+console.log(link.href);
+</script>
+
+<!--
+ 
+// document.body.getElementsByTagName goes and retrieves an array of all of the 
+// elements with that tag letter descending from that particular node.
+
+
+
+// To get a single node, you'll need to reference it by an 'Id':
+// document.getElementById
+
+-->
+
+
+<p>My ostrich Gertrude:</p>
+<p><img id="gertrude" src="img/ostrich.png"></p>
+
+
+<script>
+  let ostrich = document.getElementById("gertrude");
+  console.log(ostrich.src);
+</script>
+
+
+<!--
+// or you can get elements by class name:
+// document.getElementsByClassName
+
+-->
+
+<!--
+
+/********** * Changing The Document ***********/
+
+DOM data structure can be changed easily.
+
+Shape of the document tree can be changed by changing p
+
+Add a child to an element node as the last child by using:
+'appendChild'
+
+Insert a node before another node by using:
+'insertBefore'
+
+document.body.insertBefore(nodeToBeInserted, nodeToBeShiftedDown)
+-->
+
+
+<p>One</p>
+<p>Two</p>
+<p>Three</p>
+
+<script>
+  let paragraphs = document.body.getElementsByTagName("p");
+  document.body.insertBefore(paragraphs[2], paragraphs[0]);
+</script>
+
+<!--
+log:
+
+Three
+
+One
+
+Two
+
+-->
+
+
+<!--
+
+'replaceChild' method is used to replace a child node with another one. 
+It takes as arguments two nodes: a new node and the node to be replaced.
+
+replaceChild(newNode, nodeToBeReplaced);
+
+-->
+
+
+<!--
+
+/************** * Creating Nodes ***************/
+
+
+We're going to replace all of the <img> tags with the text in their
+'alt' attributes. 
+
+'alt' has text that describes the image. 
+
+
+To add text nodes use:
+
+document.createTextNode
+
+
+textNode is the actual text in the tag. 
+
+-->
+
+<p>
+    The <img src="img/cat.png" alt="Cat"> in the
+    <img src="img/hat.png" alt="Hat">.</p>
+  
+  <p><button onclick="replaceImages()">Replace</button></p>
+
+  <script>
+  function replaceImages() {
+      let images = document.body.getElementsByTagName("img");
+
+      for(let i = images.length-1; i >= 0; i --) {
+          let image = images[i];
+          if (image.alt){
+              let text = document.createTextNode(image.alt);
+              image.parentNode.replaceChild(text, image);
+          }
+      }
+  }
+  </script>
+
+
+<!--
+We start from the bottom of the array because the DOM is live. So if we replace the image,
+it will remove it from the images array so the index numbers will change or something.
+
+If we want a non changing collection of nodes, we should use the Array.from method to makae
+the collection a real array.
+-->
+
+<script>
+    let arrayish = {0: "one", 1: "two", length: 2};
+    let array = Array.from(arrayish);
+    console.log(array.map(s => s.toUpperCase()));
+    // → ["ONE", "TWO"]
+</script>
+
+
+<!--
+    Create 'elements' using document.createelement
+
+    We will create a utility called 'elt', which creates an 
+    element node and treats the rest of its arguments as children
+    to that node.
+
+    Then is then used to add an attribution to a quote
+
+-->
+
+<blockquote id ="quote">
+    No book can ever be finished. While working on it we 
+    learn just enough to find it immature the moment we turn
+    away from it.
+</blockquote>
+
+<script>
+    function elt(type, ...children){
+        let node = document.createElement(type);
+        for(let child of children) {
+            if (typeof child != "string") node.appendChild(child);
+            else node.appendChild(document.createTextNode(child));
+        }
+        return node;
+    }
+
+    document.getElementById("quote").appendChild(
+        elt("footer", "-",
+        // The elt function can take a node or string as the type
+        // If it gets a node, it'll just append that to the parent.
+        // If it gets a string, it'll create a text node and append that to
+            elt("strong", "Karl Popper"),
+            ", preface to the second editition of ", 
+            elt("em", "The Open Society and Its Enemies"), 
+            ", 1950"));
+</script>
+
+
+<!-- 
+
+    /************ * Attributes ************/
+
+-->
+
+<!-- 
+    
+    Some element attributes can be accessed as properties of the same name on the
+    DOM object ex: href
+
+
+    You can even create attributes apparently but you cannot access them on nodes 
+    by their names only. You have to use the 'getAttribute' and 'setAttribute' Methods
+
+
+-->
+
+<p data-classified="secret">The launch code is 0000000</p>
+<p data-classified="unclassified">I have to feet.</p>
+
+<script>
+    let paras = document.body.getElementsByTagName("p");
+    for (let para of Array.from(paras)) {
+        if (para.getAttribute("data-classified") == "secret") {
+            para.remove();
+        }
+    }
+</script>
+
+
+<!--
+
+    *Note* The book says to prefix made up attributes with 'data' to ensure they do not
+    conflict with any other attributes. So I'm guessing this is where the 'data' convention comes
+    from
+
+
+    *Note* To access the 'class' attribute, use the property name "className" or you can also
+    use the name 'class' if you are going to use the 'getAtrribute' or 'setAttribute' methods.
+-->
+
+
+<!--
+/**************** * Layout ***********/
+-->
+
+
+<!--
+    <p> and <h1> tags are 'block' elements.
+    'block' elements take up the whole width of the document and are rendered on separate lines.
+
+    <a> and <strong> tags are 'inline' elements.
+    'inline' elements are rendered on the same line with their surrounding text.
+    
+
+    Browsers compute a layout before drawing a document.
+
+
+
+    The size and position of an element can be access from JavaScript.
+
+    'offsetWidth' and 'offsetHeight' give you the space an element takes up in 'pixels'.
+
+    'pixel' are smallest unit of measurement in the browser to describe screen.
+
+    'clientWidth' and 'clientHeight' give you the size of the space INSIDE the element, ignoring border width.
+-->
+
+
+<p style="border: 3px solid red">
+    I'm boxed in.
+</p>
+
+<script>
+    let para = document.body.getElementsByTagName("p")[0];
+    console.log("clientHeight:", para.clientHeight);
+    console.log("offsetHeight:", para.offsetHeight);
+</script>
+
+
+<!--
+
+    'getBoundClientRect' will give you the 'top', 'bottom', 'left' and 'right' properties of an
+    element. They correspond to the distance in pixels from the top-left of the screen.
+
+    Use the scroll positions, 'pageXOffset' and 'pageYOffset' to get the current scroll positions.
+-->
+
+
+<!--
+    Lots of layout computations will cause the DOM to run very slow.
+
+    Program below builds X characters 2,0000 pixels wide and measures the time it takes to do so.
+-->
+
+<p><span id="one"></span></p>
+<p><span id ="two"></span></p>
+
+<script>
+    function time(name, action){
+        let start = Date.now(); // current time in milliseconds
+        action();
+        console.log(name, "took", Date.now() - start, "ms");
+    }
+
+    time("naive", () => {
+        let target = document.getElementById("one");
+        while (target.offsetWidth < 2000) {
+            target.appendChild(document.createTextNode("X"));
+        }
+    });
+    // log: naive took 32ms
+
+    time("clever", function() {
+        let target = document.getElementById("two");
+        target.appendChild(document.createTextNode("XXXXX"));
+        // 'Math.ceil' rounds up. It returns the smallest integer greater than or equal to a number.
+
+        // So we find out how many pixels one X is by dividing 'target.offsetWidth by 5' and then dividing
+        // 2000 pixels by the length of one 'X' to find out how many we need. 
+        let total = Math.ceil(2000 / (target.offsetWidth / 5));
+        target.firstChild.nodeValue = "X".repeat(total);
+    })
+</script>
+
+
+<!--
+    /************ * Styling ***************/
+
+-->
+
+<p> <a href=".">Normal link</a></p>
+<p> <a href="." style="color: green">Green link</a></p>
+
+<!-- You can use the 'style' attribute to change styling -->
+
+<!--
+    You can change an element's style through the
+    'style' property.
+-->
+
+<p id="para" style="color: purple">
+    Nice text
+</p>
+
+<script>
+    let para = document.getElementById("para");
+    console.log(para.style.color);
+    para.style.color = "magenta";
+</script>
+
+<!-- 
+    If the CSS style has a hyphen in its name ex: font-family, 
+    you must use the camelcase name for JavaScript ex: style.fontFamily
+
+-->
+
+
+<!-- 
+    /************ * Cascading Styles ***********/
+-->
+
+<!-- 
+    Styling system for html is called CSS, for Cascading Style Sheets.
+
+    Can be written in a style tag.
+-->
+
+<style>
+    strong {
+        font-style: italic;
+        color: gray;
+    }
+</style>
+<p>Now <strong>strong text</strong> is italic and gray.</p>
+
+<!--
+    Styles in a 'style' attribute applied directly to the node have the highest precedence.
+-->
+
+<!--
+    # reference ids
+    . references classes
+-->
+
+<style>
+.subtle {
+    color: gray;
+    font-size: 80%;
+  }
+  #header {
+    background: blue;
+    color: white;
+  }
+  /* p elements with id main and with classes a and b */
+  p#main.a.b {
+    margin-bottom: 20px;
+  }
+</style>
+
+<!--
+    The more specific the reference in the style tag higher
+    the precidence.
+-->
+
+
+<!--
+    /************ * Query Selectors **************/
+-->
+
+<!-- 
+    Query selectors can be used to find DOM elements
+
+    'querySelectorAll' method which is defined both on the 'document' object
+    and on the element nodes, takes a selector string and returns a 'NodeList'
+    containing all the elements that it matches
+
+    'querySelectorAll' is not live. It's object won't change when you change the document. 
+    Also it's not a real array. Need to use Array.from
+-->
+
+<p>
+    And if you go chasing
+    <span class="animal">rabbits</span>
+</p>
+<p>And you know you're going to fall</p>
+<p>Tell 'em a <span class="character">hookah smoking 
+    <span class="animal"> caterpiallar</span></span></p>
+<p>Has given you the call</p>
+
+<script>
+    function count(selector) {
+        return document.querySelectorAll(selector).length;
+    }
+    console.log(count("p"));  // All <p> elements
+    // log: 4
+    console.log(count(".animal"));   // Class animal
+    // log: 2
+    console.log(count("p .animal")); // Animal inside of <p>
+    // log: 2
+    console.log(count("p > .animal")); // Direct child of <p>
+    // log: 1
+</script>
+
+<!---
+    /************* * Positioning and Animating **************/
+-->
+
+<!--
+    'position' style property is set to 'static' as the default for elements. It means that the element
+    is a part of the flow of the DOM as related to the HTML structure.
+
+    'position' set to 'relative' leaves it at the same place in the DOM structure but can now augment
+    the 'top' and 'left' style values to move it relative to it's place in the HTML.
+
+    'position' set to 'absolute' removes it from the flow of the DOM and allows you to augment the 
+    'left' and 'top' properties in relation to the enclosing element whose position property isn't static.
+
+    
+
+    Creating an animation with these principals below:
+-->
+
+<p style="text-align: center">
+        <img src="img/cat.png" style="position: relative">
+</p>
+<script>
+    let cat = document.querySelector("img");
+    let angle = Math.PI/2;
+    function animate(time, lastTime) {
+        // time is the current time of this frame
+        if (lastTime != null) {
+            // The angle is changed by the difference between the current and last time
+            // because if a function takes a while to run it'll look bad to use a 
+            // fixed value.
+            angle += (time - lastTime) * 0.001;
+        }
+        // Multiplied by twenty to give vertical radius.
+        cat.style.top = (Math.sin(angle) * 20) + "px";
+        // Multiplied by 200 to give horizontal radius. It is much bigger than the vertical radius.
+        cat.style.left = (Math.cos(angle) * 200) + "px";
+        requestAnimationFrame(newTime => animate(newTime, time));
+    }
+    // requestAnimationFrame passes the current time to the first paramater of its callback function.
+    requestAnimationFrame(animate);
+</script>
+
+<!--
+    Remember 'relative' makes it moveable from the top and left properties in relation to it's position in 
+    the html document. 
+
+    'requestAnimationFrame' schedules 'animate' to run whenever the browser is ready to repaint the screen.
+
+    'animate' will call 'requestAnimationFrame' when it's done to refresh page.
+
+
+    *Note* why didn't we update the animation through a frame?
+    It's because Browsers don't update their display when a JavaScript program is running.
+    They also don't let you interact with the site!
+
+    'requestAnimationFrame' tells the browser we're done and to update.
+
+-->
+
+<!--
+    Explaining Math.cos and Math.sin:
+
+    Math.sin: tells us the y co-ordinate of a point on a circle
+    Math.cos: tells us the x co-ordinate of a point on a circle
+
+    They asume the circle has a radius of one.
+
+    Math.PI gives us the constant pi.
+
+
+-->
+
+<!--
+    /********* * Summary ********
+
+   document.body.getElementsByTagName 
+   document.getElementById
+   document.getElementsByClassName
+   document.createTextNode
+-->
