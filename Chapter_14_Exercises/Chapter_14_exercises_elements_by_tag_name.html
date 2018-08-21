@@ -1,0 +1,73 @@
+
+
+
+<!-- 
+    
+Chapter 14 exercises
+
+* Elements by Tag Name
+
+-->
+
+
+<!--
+
+The document.getElementsByTagName method returns all child elements with a given tag name. 
+Implement your own version of this as a function that takes a node and a string (the tag name) 
+as arguments and returns an array containing all descendant element nodes with the given tag name.
+
+To find the tag name of an element, use its nodeName property. But note that this will return the 
+tag name in all uppercase. Use the toLowerCase or toUpperCase string methods to compensate for this.
+
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+
+<h1>Heading with a <span>span</span> element.</h1>
+<p>A paragraph with <span>one</span>, <span>two</span>
+  spans.</p>
+
+    
+</body>
+
+
+<script>
+    function byTagName(node, tagName) {
+        let array = []
+        
+        function recursiveHelper(node, tagName) {
+            for(let i = 0; i < node.children.length; i++) {
+                if(node.children[i].children) {
+                    recursiveHelper(node.children[i], tagName)
+                }
+                if(node.children[i].nodeName.toLowerCase() == tagName) {
+                    console.log("found one");
+                    array.push(node.children[i]);
+                }
+            }
+        return;
+        }
+        recursiveHelper(node, tagName);
+        return array;
+    }
+    
+    console.log(byTagName(document.body, "h1").length);
+    // → 1
+    console.log(byTagName(document.body, "span").length);
+    // → 3
+    let para = document.querySelector("p");
+    console.log(byTagName(para, "span").length);
+    // → 2
+</script>
+
+
+</html>
+

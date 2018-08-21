@@ -1,0 +1,149 @@
+<!--
+
+    Chapter 14 Exercises
+
+
+    * Build a Table
+
+    An HTML table is built with the following tag structure:
+-->
+
+<!-- <table>
+    <tr>
+        <th>name</th>
+        <th>height</th>
+        <th>place</th>
+    </tr>
+    <tr>
+        <td>Kilimanjaro</td>
+        <td>5895</td>
+        <td>Tanzania</td>
+    </tr>
+</table> -->
+
+<!--
+For each row, the <table> tag contains a <tr> tag. Inside of these <tr> tags, 
+we can put cell elements: either heading cells (<th>) or regular cells (<td>).
+
+Given a data set of mountains, an array of objects with name, height, and place 
+properties, generate the DOM structure for a table that enumerates the objects. 
+It should have one column per key and one row per object, plus a header row with 
+<th> elements at the top, listing the column names.
+
+Write this so that the columns are automatically derived from the objects, 
+by taking the property names of the first object in the data.
+
+Add the resulting table to the element with an id attribute of "mountains" 
+so that it becomes visible in the document.
+
+Once you have this working, right-align cells that contain number values by setting their 
+style.textAlign property to "right".
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+        <h1>Mountains</h1>
+
+        <div id="mountains"></div>
+</body>
+
+<script>
+const MOUNTAINS = [
+    {name: "Kilimanjaro", height: 5895, place: "Tanzania"},
+    {name: "Everest", height: 8848, place: "Nepal"},
+    {name: "Mount Fuji", height: 3776, place: "Japan"},
+    {name: "Vaalserberg", height: 323, place: "Netherlands"},
+    {name: "Denali", height: 6168, place: "United States"},
+    {name: "Popocatepetl", height: 5465, place: "Mexico"},
+    {name: "Mont Blanc", height: 4808, place: "Italy/France"}
+];
+
+function addRow(newClass) {
+    let row = document.createElement("tr");
+    if(newClass) {
+        row.classList.add(newClass);
+    }
+    return row
+}
+
+function addHeader(text) {
+    let header = document.createElement("th");
+    let textNode = document.createTextNode(text);
+    header.appendChild(textNode);
+    return header;
+}
+
+function addTable() {
+    let table = document.createElement("table");
+    return table
+}
+
+
+function addHeaders(children) {
+    let headers = addRow();
+    for(header of children) {
+        headers.appendChild(addHeader(header));
+    }
+
+    return headers
+}
+
+function addTableBodyArray(data) {
+    let arrayOfRows = []
+    for(element of data) {
+        // element is one of our mountain data
+
+       let row = addRow();
+       for(key in element){
+           if(element.hasOwnProperty(key)) {
+            if(!Number.isNaN(element[key])){
+                let tableData = document.createElement("td");
+                tableData.style.textAlign = "right";
+                let text = document.createTextNode(element[key]);
+                tableData.appendChild(text);
+                row.append(tableData);
+            }
+            else{
+               let tableData = document.createElement("td");
+               let text = document.createTextNode(element[key]);
+               tableData.appendChild(text);
+               row.append(tableData);
+            }
+        }
+        arrayOfRows.push(row);
+       } 
+    }
+    return arrayOfRows;
+}
+
+function createTable(data) {
+    let origin = document.getElementById("mountains");
+    let table = addTable();
+    origin.appendChild(table);
+
+    let headersData = Object.keys(data[0]);
+    table.appendChild(addHeaders(headersData));
+
+    let arrayOfRowData = addTableBodyArray(data);
+
+    for(row of arrayOfRowData) {
+        table.appendChild(row);
+    }
+    
+}
+
+createTable(MOUNTAINS);
+
+
+
+      
+</script>
+</html>
+
+
