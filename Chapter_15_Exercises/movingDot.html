@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<style>
+    #dot {
+        width: 10px;
+        height: 10px;
+        background: teal;
+        position: absolute;
+    }
+</style>
+<body>
+    
+</body>
+
+<script>
+    let dot = document.createElement("div");
+    dot.id = "dot";
+    document.appendChild(dot);
+
+    window.addEventListener('mousemove', trail);
+    let destination;
+    function trail(event) {
+        destination = {x: event.clientX, y: event.clientY};
+
+    }
+    function decrease(coord, destination) {
+        if (coord.x <= destination.x) {
+            
+        }
+        else {
+            coord.x -= 1;
+            coord.y -= 1;
+        }
+    }
+
+    function moveDot(dotCoord){
+        let dot = document.querySelector("#dot");
+        dot.style.left = dotCoord.x;
+        dot.style.top = dotCoord.y;
+    }
+    setInterval(moveDot, 100);
+    // Value of mouse coordinate decrease every millisecond until reaching 
+    // mouse coordinate value.
+
+
+}
+
+</script>
+</html>
+
