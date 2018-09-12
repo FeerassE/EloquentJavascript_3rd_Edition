@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <title>Document</title>
+    <style>
+            .dot {
+                position: absolute;
+                top: 100px;
+                left: 100px;
+                background: teal;
+                height: 30px;
+                width: 30px;
+            }
+        </style>
+</head>
+<body>
+    <div class="dot"></div>
+
+</body>
+<script>
+    function moveDot(){
+       let dot = document.body.querySelector(".dot");
+
+       let styleTop = window.getComputedStyle(dot).top;
+       let styleLeft = window.getComputedStyle(dot).left;
+
+       let styleTopNumber = Number(styleTop.match(/\d+/g)[0]);
+       let styleLeftNumber = Number(styleLeft.match(/\d+/g)[0]);
+
+       styleTopNumber += 1;
+       styleLeftNumber += 1;
+       
+       dot.style.top = `${styleTopNumber}px`;
+       dot.style.left = `${styleLeftNumber}px`;
+        
+       
+    }
+     let interval = setInterval(moveDot, 40);
+
+     
+
+</script>
+</html>
